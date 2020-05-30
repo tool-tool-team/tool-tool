@@ -1,0 +1,9 @@
+[package]
+name = "tool-tool"
+version = "0.1.0"
+authors = ["Manuel Woelker <github@manuel.woelker.org>"]
+edition = "2018"
+description = "A light-weight meta-tool to version and install tool dependencies for your software projects"
+
+[dependencies]
+anyhow = "1.0.31"
