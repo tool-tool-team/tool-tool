@@ -1,4 +1,4 @@
-pub use anyhow::{Result, bail};
+pub use anyhow::{bail, Result};
 
 macro_rules! verbose {
      ($($arg:tt)+) => ({
@@ -17,19 +17,17 @@ pub mod invocation;
 pub mod platform;
 
 use crate::args::{parse_args, Args};
+use crate::config::get_config;
 use crate::help::print_help;
 use crate::invocation::run_invocation;
-use std::sync::atomic::{AtomicBool, Ordering};
-use crate::config::get_config;
 use anyhow::Context;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 pub const NAME: &'static str = env!("CARGO_PKG_NAME");
 pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 pub const DESCRIPTION: &'static str = env!("CARGO_PKG_DESCRIPTION");
 
 pub static VERBOSE: AtomicBool = AtomicBool::new(true);
-
-
 
 fn main() -> Result<()> {
     let args = parse_args(&mut std::env::args().skip(1))?;
@@ -38,9 +36,7 @@ fn main() -> Result<()> {
 
     match args {
         Args::Help => print_help(),
-        Args::Invocation(invocation) => {
-            run_invocation(invocation, configuration)?
-        }
+        Args::Invocation(invocation) => run_invocation(invocation, configuration)?,
     }
     Ok(())
 }

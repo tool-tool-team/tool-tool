@@ -1,11 +1,11 @@
 use crate::args::Invocation;
-use crate::Result;
-use std::process::{Command, exit};
-use crate::config::{get_config, Configuration};
 use crate::cache::Cache;
+use crate::config::{get_config, Configuration};
+use crate::Result;
 use crate::{NAME, VERSION};
 use anyhow::Context;
 use std::ffi::OsStr;
+use std::process::{exit, Command};
 
 pub fn run_invocation(invocation: Invocation, configuration: Configuration) -> Result<()> {
     verbose!("{} {}", NAME, VERSION);
@@ -24,7 +24,9 @@ pub fn run_invocation(invocation: Invocation, configuration: Configuration) -> R
         }
     }
     verbose!("Executing {:?}", command);
-    let status = command.status().with_context(|| format!("Unable to run invocation {:?}", command))?;
+    let status = command
+        .status()
+        .with_context(|| format!("Unable to run invocation {:?}", command))?;
     let exitcode = status.code().unwrap_or(0);
     exit(exitcode);
 }

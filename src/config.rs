@@ -1,7 +1,7 @@
 use crate::Result;
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
-use serde::Deserialize;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Configuration {

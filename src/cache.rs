@@ -1,14 +1,14 @@
 use crate::config::{get_config, Configuration, ToolConfiguration};
+use crate::download::download;
+use crate::platform::{get_download_url, APPLICATION_EXTENSIONS};
 use crate::Result;
 use anyhow::bail;
 use anyhow::Context;
-use std::fs::File;
-use crate::download::download;
-use std::ffi::OsStr;
-use std::path::PathBuf;
-use crate::platform::{get_download_url, APPLICATION_EXTENSIONS};
-use std::ops::Deref;
 use flate2::read::GzDecoder;
+use std::ffi::OsStr;
+use std::fs::File;
+use std::ops::Deref;
+use std::path::PathBuf;
 use tar::Archive;
 
 pub struct Cache {
@@ -18,7 +18,9 @@ pub struct Cache {
 
 impl Cache {
     pub fn create(configuration: Configuration) -> Result<Self> {
-        let cache_dir = dirs::cache_dir().context("Unable to locate cache dir")?.join("tool-tool-v1");
+        let cache_dir = dirs::cache_dir()
+            .context("Unable to locate cache dir")?
+            .join("tool-tool-v1");
         verbose!("Using cache_dir {:?}", cache_dir);
         let tools_dir = cache_dir.join("tools");
         Ok(Cache {
@@ -29,13 +31,22 @@ impl Cache {
     pub fn init(&self) -> Result<()> {
         let tools_dir = &self.tools_dir;
         let configuration = &self.configuration;
-        let tmp_dir = tools_dir.join(format!(".tmp/{}-{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?.as_nanos(), std::process::id()));
+        let tmp_dir = tools_dir.join(format!(
+            ".tmp/{}-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)?
+                .as_nanos(),
+            std::process::id()
+        ));
 
         for tool in &configuration.tools {
             let tool_dir = self.get_tool_dir(tool);
-            ;
             if tool_dir.exists() {
-                verbose!("Tool Directory for {} v{} found, skipping download", tool.name, tool.version);
+                verbose!(
+                    "Tool Directory for {} v{} found, skipping download",
+                    tool.name,
+                    tool.version
+                );
                 continue;
             }
             verbose!("Using tmp_dir {:?}", tmp_dir);
@@ -86,7 +97,11 @@ impl Cache {
                     entry.unpack(&outpath)?;
                 }
             } else {
-                bail!("Unsupported file extension for file {}: {:?}", file_name, extension);
+                bail!(
+                    "Unsupported file extension for file {}: {:?}",
+                    file_name,
+                    extension
+                );
             }
             atomicwrites::move_atomic(&extract_dir, &tool_dir)?
         }
@@ -98,8 +113,17 @@ impl Cache {
     }
 
     pub fn get_command_paths(&self, command: &str) -> Result<Vec<PathBuf>> {
-        let tool_configuration = self.configuration.tools.iter().find(|tool| tool.name == command || tool.commands.contains_key(command)).context("Tool not found")?;
-        let mut binary: &str = tool_configuration.commands.get(command).map(Deref::deref).unwrap_or(command);
+        let tool_configuration = self
+            .configuration
+            .tools
+            .iter()
+            .find(|tool| tool.name == command || tool.commands.contains_key(command))
+            .context("Tool not found")?;
+        let mut binary: &str = tool_configuration
+            .commands
+            .get(command)
+            .map(Deref::deref)
+            .unwrap_or(command);
         let tool_dir = self.get_tool_dir(tool_configuration);
         let mut result: Vec<PathBuf> = if binary.contains(" ") {
             // handle composite commands
@@ -109,8 +133,12 @@ impl Cache {
         } else {
             vec![]
         };
-        let mut command_candidates = APPLICATION_EXTENSIONS.iter().map(|extension| tool_dir.join(format!("{}{}", binary, extension)));
-        let command_path = command_candidates.find(|tool_path| tool_path.exists()).with_context(|| format!("Tool executable {} not found", command))?;
+        let mut command_candidates = APPLICATION_EXTENSIONS
+            .iter()
+            .map(|extension| tool_dir.join(format!("{}{}", binary, extension)));
+        let command_path = command_candidates
+            .find(|tool_path| tool_path.exists())
+            .with_context(|| format!("Tool executable {} not found", command))?;
         result.push(command_path);
         Ok(result)
     }
