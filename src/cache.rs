@@ -7,6 +7,7 @@ use crate::download::download;
 use std::ffi::OsStr;
 use std::path::PathBuf;
 use crate::platform::{get_download_url, APPLICATION_EXTENSION};
+use std::ops::Deref;
 
 pub struct Cache {
     configuration: Configuration,
@@ -82,7 +83,9 @@ impl Cache {
     }
 
     pub fn get_command_path(&self, command: &str) -> Result<PathBuf> {
-        let tool_configuration = self.configuration.tools.iter().find(|tool| tool.name == command).context("Tool not found")?;
-        Ok(self.get_tool_dir(tool_configuration).join(format!("{}{}", command, APPLICATION_EXTENSION)))
+        let tool_configuration = self.configuration.tools.iter().find(|tool| tool.name == command || tool.commands.contains_key(command)).context("Tool not found")?;
+        let binary: &str = tool_configuration.commands.get(command).map(Deref::deref).unwrap_or(command);
+        // TODO: look for file using different extensions
+        Ok(self.get_tool_dir(tool_configuration).join(format!("{}{}", binary, APPLICATION_EXTENSION)))
     }
 }

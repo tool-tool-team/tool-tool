@@ -13,6 +13,8 @@ pub struct ToolConfiguration {
     pub name: String,
     pub version: String,
     pub download: DownloadUrls,
+    #[serde(default)]
+    pub commands: HashMap<String, String>,
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
