@@ -5,15 +5,26 @@ use crate::config::{get_config, Configuration};
 use crate::cache::Cache;
 use crate::{NAME, VERSION};
 use anyhow::Context;
+use std::ffi::OsStr;
 
 pub fn run_invocation(invocation: Invocation, configuration: Configuration) -> Result<()> {
     verbose!("{} {}", NAME, VERSION);
-    let cache = Cache::create(configuration)?;
+    let cache = Cache::create(configuration.clone())?;
     cache.init()?;
-    let command_path = cache.get_command_path(&invocation.command_name)?;
-    let mut command = Command::new(command_path);
+    let command_paths = cache.get_command_paths(&invocation.command_name)?;
+    let mut command = Command::new(command_paths.first().expect("at least one command"));
+    for subcommand in command_paths.iter().skip(1) {
+        command.arg(subcommand);
+    }
     command.args(invocation.args);
-    let status = command.status()?;
+    for tool in &configuration.tools {
+        if let Some(name) = &tool.export_directory {
+            let tool_dir = cache.get_tool_dir(tool);
+            command.env(OsStr::new(name), tool_dir.as_os_str().to_os_string());
+        }
+    }
+    verbose!("Executing {:?}", command);
+    let status = command.status().with_context(|| format!("Unable to run invocation {:?}", command))?;
     let exitcode = status.code().unwrap_or(0);
     exit(exitcode);
 }
