@@ -21,18 +21,6 @@ pub struct DownloadUrls {
     pub windows: String,
 }
 
-
-impl ToolConfiguration {
-    #[cfg(target_os = "linux")]
-    pub fn download_url(&self) -> &str {
-        &self.download.linux
-    }
-    #[cfg(target_os = "windows")]
-    pub fn download_url(&self) -> &str {
-        &self.download.windows
-    }
-}
-
 pub fn get_config() -> Result<Configuration> {
     Ok(serde_yaml::from_reader(File::open(".tool-tool.v1.yaml")?)?)
 }

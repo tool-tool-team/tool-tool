@@ -7,7 +7,7 @@ const MAX_REDIRECTS: i32 = 10;
 
 pub fn download(url: &str, path: &Path) -> Result<()> {
     let mut download_url = url.to_string();
-    for i in 0..MAX_REDIRECTS {
+    for _ in 0..MAX_REDIRECTS {
         let mut file = File::create(path)?;
         let res = http_req::request::get(&download_url, &mut file).unwrap();
         if res.status_code().is_success() {

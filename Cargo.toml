@@ -12,3 +12,4 @@ serde = { version = "1.0.111", features = ["derive"] }
 serde_yaml = "0.8.12"
 dirs = "2.0.2"
 zip = { version = "0.5", default-features = false, features = ["deflate"] }
+atomicwrites = "0.2.5"
