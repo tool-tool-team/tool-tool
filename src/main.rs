@@ -27,16 +27,20 @@ pub const NAME: &'static str = env!("CARGO_PKG_NAME");
 pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 pub const DESCRIPTION: &'static str = env!("CARGO_PKG_DESCRIPTION");
 
-pub static VERBOSE: AtomicBool = AtomicBool::new(true);
+pub static VERBOSE: AtomicBool = AtomicBool::new(false);
 
 fn main() -> Result<()> {
-    let args = parse_args(&mut std::env::args().skip(1))?;
+    let verbose_env = std::env::var("TOOL_TOOL_VERBOSE").is_ok();
+    let args = parse_args(&mut std::env::args().skip(1), verbose_env)?;
 
     let configuration = get_config().context("Unable to load configuration")?;
 
     match args {
         Args::Help => print_help(),
-        Args::Invocation(invocation) => run_invocation(invocation, configuration)?,
+        Args::Invocation(invocation) => {
+            VERBOSE.store(invocation.verbose, Ordering::Relaxed);
+            run_invocation(invocation, configuration)?
+        }
     }
     Ok(())
 }

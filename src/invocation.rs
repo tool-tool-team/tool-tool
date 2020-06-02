@@ -1,6 +1,6 @@
 use crate::args::Invocation;
 use crate::cache::Cache;
-use crate::config::{get_config, Configuration};
+use crate::config::Configuration;
 use crate::Result;
 use crate::{NAME, VERSION};
 use anyhow::Context;

@@ -1,4 +1,4 @@
-use crate::config::{get_config, Configuration, ToolConfiguration};
+use crate::config::{Configuration, ToolConfiguration};
 use crate::download::download;
 use crate::platform::{get_download_url, APPLICATION_EXTENSIONS};
 use crate::Result;
