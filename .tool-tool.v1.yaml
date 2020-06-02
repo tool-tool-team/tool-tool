@@ -2,14 +2,14 @@ tools:
   - name: lsd
     version: 0.17.0
     download:
-      linux: https://github.com/Peltoche/lsd/releases/download/0.17.0/lsd-0.17.0-x86_64-unknown-linux-gnu.tar.gz
-      windows: https://github.com/Peltoche/lsd/releases/download/0.17.0/lsd-0.17.0-x86_64-pc-windows-msvc.zip
+      linux: https://github.com/Peltoche/lsd/releases/download/${version}/lsd-${version}-x86_64-unknown-linux-gnu.tar.gz
+      windows: https://github.com/Peltoche/lsd/releases/download/${version}/lsd-${version}-x86_64-pc-windows-msvc.zip
 
   - name: openjdk
     version: 8u252-b09.1
     download:
-      linux: https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u252-b09.1/OpenJDK8U-jdk_x86-32_windows_hotspot_8u252b09.zip
-      windows: https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u252-b09.1/OpenJDK8U-jdk_x86-32_windows_hotspot_8u252b09.zip
+      linux: https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk${version}/OpenJDK8U-jdk_x86-32_windows_hotspot_8u252b09.zip
+      windows: https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk${version}/OpenJDK8U-jdk_x86-32_windows_hotspot_8u252b09.zip
     commands:
       java: bin/java
     export_directory: JAVA_HOME
@@ -17,22 +17,22 @@ tools:
   - name: maven
     version: 3.6.3
     download:
-      default: https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+      default: https://downloads.apache.org/maven/maven-3/${version}/binaries/apache-maven-${version}-bin.tar.gz
     commands:
       mvn: bin/mvn
 
   - name: gradle
-    version: 3.6.3
+    version: 6.4.1
     download:
-      default: https://downloads.gradle-dn.com/distributions/gradle-6.4.1-bin.zip
+      default: https://downloads.gradle-dn.com/distributions/gradle-${version}-bin.zip
     commands:
       gradle: bin/gradle
 
   - name: Node.js
     version: 12.17.0
     download:
-      linux: https://nodejs.org/dist/v12.17.0/node-v12.17.0-win-x64.zip
-      windows: https://nodejs.org/dist/v12.17.0/node-v12.17.0-win-x64.zip
+      linux: https://nodejs.org/dist/v${version}/node-v${version}-win-x64.zip
+      windows: https://nodejs.org/dist/v${version}/node-v${version}-win-x64.zip
     commands:
       node: node
       npm: npm
@@ -41,7 +41,6 @@ tools:
   - name: Yarn
     version: 1.22.4
     download:
-      linux: https://github.com/yarnpkg/yarn/releases/download/v1.22.4/yarn-v1.22.4.tar.gz
-      windows: https://github.com/yarnpkg/yarn/releases/download/v1.22.4/yarn-v1.22.4.tar.gz
+      default: https://github.com/yarnpkg/yarn/releases/download/v${version}/yarn-v${version}.tar.gz
     commands:
       yarn: node bin/yarn.js

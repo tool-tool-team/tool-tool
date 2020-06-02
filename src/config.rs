@@ -27,5 +27,17 @@ pub struct DownloadUrls {
 }
 
 pub fn get_config() -> Result<Configuration> {
-    Ok(serde_yaml::from_reader(File::open(".tool-tool.v1.yaml")?)?)
+    let mut configuration: Configuration = serde_yaml::from_reader(File::open(".tool-tool.v1.yaml")?)?;
+    for tool in &mut configuration.tools {
+        replace_templates(&mut tool.download.default, &tool.version);
+        replace_templates(&mut tool.download.linux, &tool.version);
+        replace_templates(&mut tool.download.windows, &tool.version);
+    }
+    Ok(configuration)
+}
+
+fn replace_templates(string: &mut Option<String>, version: &str) {
+    if let Some(inner) = string {
+        *string = Some(inner.replace("${version}", version));
+    }
 }
