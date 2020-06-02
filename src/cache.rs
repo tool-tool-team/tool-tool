@@ -58,7 +58,6 @@ impl Cache {
             let file_path = tmp_dir.join(file_name);
             download(url, &file_path)?;
             let extract_dir = tmp_dir.join(&tool.name);
-            dbg!(&file_path);
             let extension = file_path.extension();
             std::fs::create_dir_all(&extract_dir)?;
             let zip_extension = Some(OsStr::new("zip"));
@@ -72,10 +71,8 @@ impl Cache {
                     let outpath = extract_dir.join(file_name);
 
                     if (&*file.name()).ends_with('/') {
-                        //verbose!("File {} extracted to \"{}\"", i, outpath.as_path().display());
-                        //std::fs::create_dir_all(&outpath).unwrap();
+                        std::fs::create_dir_all(&outpath).unwrap();
                     } else {
-                        //verbose!("File {} extracted to \"{}\" ({} bytes)", i, outpath.as_path().display(), file.size());
                         if let Some(p) = outpath.parent() {
                             if !p.exists() {
                                 std::fs::create_dir_all(&p).unwrap();

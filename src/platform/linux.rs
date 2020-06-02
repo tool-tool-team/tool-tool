@@ -1,7 +1,7 @@
 use crate::config::ToolConfiguration;
 
 pub fn get_download_url(tool_configuration: &ToolConfiguration) -> &str {
-    &tool_configuration.download.windows
+    &tool_configuration.download.linux
 }
 
-pub const APPLICATION_EXTENSIONS: &[&str] = &[".exe", ".cmd", ".bat", ""];
+pub const APPLICATION_EXTENSIONS: &[&str] = &["", ".sh"];

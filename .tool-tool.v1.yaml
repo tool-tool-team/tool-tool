@@ -22,6 +22,14 @@ tools:
     commands:
       mvn: bin/mvn
 
+  - name: gradle
+    version: 3.6.3
+    download:
+      linux: https://downloads.gradle-dn.com/distributions/gradle-6.4.1-bin.zip
+      windows: https://downloads.gradle-dn.com/distributions/gradle-6.4.1-bin.zip
+    commands:
+      gradle: bin/gradle
+
   - name: Node.js
     version: 12.17.0
     download:
