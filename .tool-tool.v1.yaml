@@ -17,16 +17,14 @@ tools:
   - name: maven
     version: 3.6.3
     download:
-      linux: https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
-      windows: https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+      default: https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
     commands:
       mvn: bin/mvn
 
   - name: gradle
     version: 3.6.3
     download:
-      linux: https://downloads.gradle-dn.com/distributions/gradle-6.4.1-bin.zip
-      windows: https://downloads.gradle-dn.com/distributions/gradle-6.4.1-bin.zip
+      default: https://downloads.gradle-dn.com/distributions/gradle-6.4.1-bin.zip
     commands:
       gradle: bin/gradle
 

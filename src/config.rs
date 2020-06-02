@@ -21,8 +21,9 @@ pub struct ToolConfiguration {
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct DownloadUrls {
-    pub linux: String,
-    pub windows: String,
+    pub default: Option<String>,
+    pub linux: Option<String>,
+    pub windows: Option<String>,
 }
 
 pub fn get_config() -> Result<Configuration> {
