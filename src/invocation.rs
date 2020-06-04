@@ -11,9 +11,9 @@ pub fn run_invocation(invocation: Invocation, configuration: Configuration) -> R
     verbose!("{} {}", NAME, VERSION);
     let cache = Cache::create(configuration.clone())?;
     cache.init()?;
-    let (binary, args) = cache.get_command_line(&invocation.command_name)?;
-    let mut command = Command::new(binary);
-    for arg in args {
+    let command_line = cache.get_command_line(&invocation.command_name)?;
+    let mut command = Command::new(command_line.binary);
+    for arg in command_line.arguments {
         command.arg(arg);
     }
     command.args(invocation.args);

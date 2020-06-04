@@ -1,6 +1,6 @@
 use crate::config::{Configuration, ToolConfiguration};
 use crate::download::download;
-use crate::platform::{get_download_url, APPLICATION_EXTENSIONS};
+use crate::platform::{Platform, PlatformFunctions};
 use crate::Result;
 use anyhow::bail;
 use anyhow::Context;
@@ -15,6 +15,11 @@ use crate::template::template;
 pub struct Cache {
     configuration: Configuration,
     tools_dir: PathBuf,
+}
+
+pub struct CommandLine {
+    pub binary: String,
+    pub arguments: Vec<String>,
 }
 
 impl Cache {
@@ -51,7 +56,7 @@ impl Cache {
             verbose!("Using tmp_dir {:?}", tmp_dir);
             std::fs::create_dir_all(&tmp_dir)?;
             std::fs::create_dir_all(tool_dir.parent().expect("Parent should exist"))?;
-            let url = get_download_url(tool).context("No download url configured")?;
+            let url = Platform::get_download_url(tool).context("No download url configured")?;
             let file_name = url.rsplitn(2, "/").next().unwrap();
             verbose!("Downloading <{}> ({}) from <{}>", tool.name, file_name, url);
             let file_path = tmp_dir.join(file_name);
@@ -99,7 +104,7 @@ impl Cache {
                     extension
                 );
             }
-            atomicwrites::move_atomic(&extract_dir, &tool_dir)?
+            Platform::rename_atomically(&extract_dir, &tool_dir)?
         }
         Ok(())
     }
@@ -108,7 +113,7 @@ impl Cache {
         self.tools_dir.join(&tool.name).join(&tool.version)
     }
 
-    pub fn get_command_line(&self, command: &str) -> Result<(PathBuf, Vec<String>)> {
+    pub fn get_command_line(&self, command: &str) -> Result<CommandLine> {
         let tool_configuration = self
             .configuration
             .tools
@@ -127,8 +132,8 @@ impl Cache {
                 name => {
                     if name.starts_with("cmd:") {
                         let command_name = &name[4..];
-                        let (command, _) = self.get_command_line(command_name).with_context(|| format!("Could not find tool command '{}'", command_name))?;
-                        Ok(command.to_string_lossy().to_string())
+                        let command_line = self.get_command_line(command_name).with_context(|| format!("Could not find tool command '{}'", command_name))?;
+                        Ok(command_line.binary)
                     } else {
                         bail!("Unsupported template: '{}'", name)
                     }
@@ -138,13 +143,15 @@ impl Cache {
         let command_parts: Result<Vec<String>> = command_results.into_iter().collect();
         let mut command_parts: Vec<String> = command_parts?;
         let command = command_parts.remove(0);
-        let mut command_candidates = APPLICATION_EXTENSIONS
+        let mut command_candidates = Platform::APPLICATION_EXTENSIONS
             .iter()
             .map(|extension| PathBuf::from(format!("{}{}", command, extension)));
         let command_path = command_candidates
             .find(|tool_path| tool_path.exists())
             .with_context(|| format!("Tool executable {} not found", command))?;
-//        result.push(command_path);
-       Ok((command_path, command_parts))
+       Ok(CommandLine {
+           binary: command_path.to_string_lossy().to_string(),
+           arguments: command_parts,
+       })
     }
 }
