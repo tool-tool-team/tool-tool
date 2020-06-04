@@ -18,6 +18,13 @@ pub struct ToolConfiguration {
     pub commands: HashMap<String, String>,
     #[serde(default)]
     pub env: HashMap<String, String>,
+    // strip directories when unpacking zip/tar.gz downloads
+    #[serde(default = "default_strip_directories")]
+    pub strip_directories: usize,
+}
+
+fn default_strip_directories() -> usize {
+    1
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]

@@ -73,7 +73,7 @@ impl Cache {
                 let mut archive = zip::ZipArchive::new(file).unwrap();
                 for i in 0..archive.len() {
                     let mut file = archive.by_index(i).unwrap();
-                    let file_name: PathBuf = file.sanitized_name().components().skip(1).collect();
+                    let file_name: PathBuf = file.sanitized_name().components().skip(tool.strip_directories).collect();
                     let outpath = extract_dir.join(file_name);
 
                     if (&*file.name()).ends_with('/') {
@@ -94,7 +94,7 @@ impl Cache {
                 let mut archive = Archive::new(tar);
                 for entry in archive.entries()? {
                     let mut entry = entry?;
-                    let path: PathBuf = entry.path()?.components().skip(1).collect();
+                    let path: PathBuf = entry.path()?.components().skip(tool.strip_directories).collect();
                     let outpath = extract_dir.join(path);
                     std::fs::create_dir_all(outpath.parent().expect("parent"))?;
                     entry.unpack(&outpath)?;
@@ -121,7 +121,7 @@ impl Cache {
             .tools
             .iter()
             .find(|tool| tool.commands.contains_key(command))
-            .with_context(|| format!("Tool {} not found", command))?;
+            .with_context(|| format!("Tool for command {} not found", command))?;
         let command_line: &str = tool_configuration
             .commands
             .get(command)

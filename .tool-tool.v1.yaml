@@ -47,3 +47,17 @@ tools:
       default: https://github.com/yarnpkg/yarn/releases/download/v${version}/yarn-v${version}.tar.gz
     commands:
       yarn: ${cmd:node} ${dir}/bin/yarn.js
+
+  - name: nethack
+    version: 3.6.6
+    strip_directories: 0
+    download:
+      windows: https://www.nethack.org/download/${version}/nethack-366-win-x86.zip
+    commands:
+      nethack: NetHackW
+
+  - name: gitui
+    version: 0.5.0
+    strip_directories: 0
+    download:
+      windows: https://github.com/extrawurst/gitui/releases/download/v${version}/gitui-win.tar.gz

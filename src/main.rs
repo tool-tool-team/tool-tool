@@ -3,7 +3,7 @@ pub use anyhow::{bail, Result};
 macro_rules! verbose {
      ($($arg:tt)+) => ({
         if(crate::VERBOSE.load(std::sync::atomic::Ordering::Relaxed)) {
-            print!("TT> ");
+            print!("🔧 ");
             println!($($arg)+);
         }
     });
@@ -37,7 +37,7 @@ fn main() -> Result<()> {
     let configuration = get_config().context("Unable to load configuration")?;
 
     match args {
-        Args::Help => print_help(),
+        Args::Help => print_help(&configuration),
         Args::Invocation(invocation) => {
             VERBOSE.store(invocation.verbose, Ordering::Relaxed);
             run_invocation(invocation, configuration)?
