@@ -17,7 +17,7 @@ pub struct ToolConfiguration {
     #[serde(default)]
     pub commands: HashMap<String, String>,
     #[serde(default)]
-    pub export_directory_as: Option<String>,
+    pub env: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
@@ -48,7 +48,6 @@ pub fn get_config() -> Result<Configuration> {
         }
     }
     configuration.cache_dir.get_or_insert(config_path.parent().expect("config parent").join(".tool-tool/v1").as_path().to_str().expect("Tool dir").to_string());
-    dbg!(&configuration);
     Ok(configuration)
 }
 

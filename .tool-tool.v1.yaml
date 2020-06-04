@@ -12,7 +12,6 @@ tools:
       windows: https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk${version}/OpenJDK8U-jdk_x86-32_windows_hotspot_8u252b09.zip
     commands:
       java: bin/java
-    export_directory_as: JAVA_HOME
 
   - name: maven
     version: 3.6.3
@@ -20,6 +19,8 @@ tools:
       default: https://downloads.apache.org/maven/maven-3/${version}/binaries/apache-maven-${version}-bin.tar.gz
     commands:
       mvn: bin/mvn
+    env:
+      JAVA_HOME: ${dir:openjdk}
 
   - name: gradle
     version: 6.4.1
@@ -27,6 +28,8 @@ tools:
       default: https://downloads.gradle-dn.com/distributions/gradle-${version}-bin.zip
     commands:
       gradle: bin/gradle
+    env:
+      JAVA_HOME: ${dir:openjdk}
 
   - name: Node.js
     version: 12.17.0

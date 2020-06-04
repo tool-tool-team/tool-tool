@@ -11,6 +11,7 @@ use std::ops::Deref;
 use std::path::PathBuf;
 use tar::Archive;
 use crate::template::template;
+use std::collections::HashMap;
 
 pub struct Cache {
     configuration: Configuration,
@@ -20,6 +21,7 @@ pub struct Cache {
 pub struct CommandLine {
     pub binary: String,
     pub arguments: Vec<String>,
+    pub env: HashMap<String, String>,
 }
 
 impl Cache {
@@ -126,7 +128,7 @@ impl Cache {
             .map(Deref::deref)
             .unwrap_or(command);
         let tool_dir = self.get_tool_dir(tool_configuration);
-        let command_results: Vec<Result<String>> = command_line.split(" ").map(|part| template(part, |name| {
+        let replace_fn = |name: &str| {
             match name {
                 "dir" => Ok(tool_dir.to_string_lossy().to_string()),
                 name => {
@@ -134,12 +136,18 @@ impl Cache {
                         let command_name = &name[4..];
                         let command_line = self.get_command_line(command_name).with_context(|| format!("Could not find tool command '{}'", command_name))?;
                         Ok(command_line.binary)
+                    } else if name.starts_with("dir:") {
+                        let tool_name = &name[4..];
+                        let tool = self.configuration.tools.iter().find(|tool| tool.name == tool_name).with_context(|| format!("Could not find tool '{}' in tools list", tool_name))?;
+                        let tool_dir = self.get_tool_dir(tool);
+                        Ok(tool_dir.to_string_lossy().to_string())
                     } else {
                         bail!("Unsupported template: '{}'", name)
                     }
-                },
+                }
             }
-        })).collect();
+        };
+        let command_results: Vec<Result<String>> = command_line.split(" ").map(|part| template(part, replace_fn)).collect();
         let command_parts: Result<Vec<String>> = command_results.into_iter().collect();
         let mut command_parts: Vec<String> = command_parts?;
         let command = command_parts.remove(0);
@@ -149,9 +157,16 @@ impl Cache {
         let command_path = command_candidates
             .find(|tool_path| tool_path.exists())
             .with_context(|| format!("Tool executable {} not found", command))?;
-       Ok(CommandLine {
-           binary: command_path.to_string_lossy().to_string(),
-           arguments: command_parts,
-       })
+
+        let mut env = tool_configuration.env.clone();
+        for (key, value) in &mut env {
+            *value = template(value, replace_fn).with_context(|| format!("Could not replace template string for env '{}' to '{}'", key, value))?;
+        }
+
+        Ok(CommandLine {
+            binary: command_path.to_string_lossy().to_string(),
+            arguments: command_parts,
+            env,
+        })
     }
 }
