@@ -12,7 +12,7 @@ tools:
       windows: https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk${version}/OpenJDK8U-jdk_x86-32_windows_hotspot_8u252b09.zip
     commands:
       java: bin/java
-    export_directory: JAVA_HOME
+    export_directory_as: JAVA_HOME
 
   - name: maven
     version: 3.6.3

@@ -5,6 +5,7 @@ use std::fs::File;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Configuration {
+    pub cache_dir: Option<String>,
     pub tools: Vec<ToolConfiguration>,
 }
 
@@ -16,7 +17,7 @@ pub struct ToolConfiguration {
     #[serde(default)]
     pub commands: HashMap<String, String>,
     #[serde(default)]
-    pub export_directory: Option<String>,
+    pub export_directory_as: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
@@ -27,12 +28,17 @@ pub struct DownloadUrls {
 }
 
 pub fn get_config() -> Result<Configuration> {
-    let mut configuration: Configuration = serde_yaml::from_reader(File::open(".tool-tool.v1.yaml")?)?;
+    // TODO: resolve upwards
+    let config_path = std::env::current_dir()?.join(".tool-tool.v1.yaml");
+    verbose!("Reading configuration from {:?}", config_path);
+    let mut configuration: Configuration = serde_yaml::from_reader(File::open(&config_path)?)?;
     for tool in &mut configuration.tools {
         replace_templates(&mut tool.download.default, &tool.version);
         replace_templates(&mut tool.download.linux, &tool.version);
         replace_templates(&mut tool.download.windows, &tool.version);
     }
+    configuration.cache_dir.get_or_insert(config_path.parent().expect("config parent").join(".tool-tool/v1").as_path().to_str().expect("Tool dir").to_string());
+    dbg!(&configuration);
     Ok(configuration)
 }
 

@@ -18,9 +18,7 @@ pub struct Cache {
 
 impl Cache {
     pub fn create(configuration: Configuration) -> Result<Self> {
-        let cache_dir = dirs::cache_dir()
-            .context("Unable to locate cache dir")?
-            .join("tool-tool-v1");
+        let cache_dir = PathBuf::from(configuration.cache_dir.as_deref().expect("cache dir"));
         verbose!("Using cache_dir {:?}", cache_dir);
         let tools_dir = cache_dir.join("tools");
         Ok(Cache {

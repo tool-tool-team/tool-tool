@@ -18,9 +18,9 @@ pub fn run_invocation(invocation: Invocation, configuration: Configuration) -> R
     }
     command.args(invocation.args);
     for tool in &configuration.tools {
-        if let Some(name) = &tool.export_directory {
+        if let Some(env_name) = &tool.export_directory_as {
             let tool_dir = cache.get_tool_dir(tool);
-            command.env(OsStr::new(name), tool_dir.as_os_str().to_os_string());
+            command.env(OsStr::new(env_name), tool_dir.as_os_str().to_os_string());
         }
     }
     verbose!("Executing {:?}", command);
