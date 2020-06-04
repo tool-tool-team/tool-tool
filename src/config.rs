@@ -36,6 +36,16 @@ pub fn get_config() -> Result<Configuration> {
         replace_templates(&mut tool.download.default, &tool.version);
         replace_templates(&mut tool.download.linux, &tool.version);
         replace_templates(&mut tool.download.windows, &tool.version);
+        // Add default command
+        if tool.commands.is_empty() {
+            tool.commands.insert(tool.name.clone(), tool.name.clone());
+        }
+        // Add missing dirs
+        for (_, value) in &mut tool.commands {
+            if !value.contains("${dir}") {
+                *value = format!("${{dir}}/{}", value);
+            }
+        }
     }
     configuration.cache_dir.get_or_insert(config_path.parent().expect("config parent").join(".tool-tool/v1").as_path().to_str().expect("Tool dir").to_string());
     dbg!(&configuration);

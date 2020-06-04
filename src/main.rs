@@ -15,6 +15,7 @@ pub mod download;
 pub mod help;
 pub mod invocation;
 pub mod platform;
+pub mod template;
 
 use crate::args::{parse_args, Args};
 use crate::config::get_config;

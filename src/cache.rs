@@ -10,6 +10,7 @@ use std::fs::File;
 use std::ops::Deref;
 use std::path::PathBuf;
 use tar::Archive;
+use crate::template::template;
 
 pub struct Cache {
     configuration: Configuration,
@@ -107,34 +108,43 @@ impl Cache {
         self.tools_dir.join(&tool.name).join(&tool.version)
     }
 
-    pub fn get_command_paths(&self, command: &str) -> Result<Vec<PathBuf>> {
+    pub fn get_command_line(&self, command: &str) -> Result<(PathBuf, Vec<String>)> {
         let tool_configuration = self
             .configuration
             .tools
             .iter()
-            .find(|tool| tool.name == command || tool.commands.contains_key(command))
-            .context("Tool not found")?;
-        let mut binary: &str = tool_configuration
+            .find(|tool| tool.commands.contains_key(command))
+            .with_context(|| format!("Tool {} not found", command))?;
+        let command_line: &str = tool_configuration
             .commands
             .get(command)
             .map(Deref::deref)
             .unwrap_or(command);
         let tool_dir = self.get_tool_dir(tool_configuration);
-        let mut result: Vec<PathBuf> = if binary.contains(" ") {
-            // handle composite commands
-            let split: Vec<&str> = binary.rsplitn(2, " ").collect();
-            binary = split[0];
-            self.get_command_paths(split[1])?
-        } else {
-            vec![]
-        };
+        let command_results: Vec<Result<String>> = command_line.split(" ").map(|part| template(part, |name| {
+            match name {
+                "dir" => Ok(tool_dir.to_string_lossy().to_string()),
+                name => {
+                    if name.starts_with("cmd:") {
+                        let command_name = &name[4..];
+                        let (command, _) = self.get_command_line(command_name).with_context(|| format!("Could not find tool command '{}'", command_name))?;
+                        Ok(command.to_string_lossy().to_string())
+                    } else {
+                        bail!("Unsupported template: '{}'", name)
+                    }
+                },
+            }
+        })).collect();
+        let command_parts: Result<Vec<String>> = command_results.into_iter().collect();
+        let mut command_parts: Vec<String> = command_parts?;
+        let command = command_parts.remove(0);
         let mut command_candidates = APPLICATION_EXTENSIONS
             .iter()
-            .map(|extension| tool_dir.join(format!("{}{}", binary, extension)));
+            .map(|extension| PathBuf::from(format!("{}{}", command, extension)));
         let command_path = command_candidates
             .find(|tool_path| tool_path.exists())
             .with_context(|| format!("Tool executable {} not found", command))?;
-        result.push(command_path);
-        Ok(result)
+//        result.push(command_path);
+       Ok((command_path, command_parts))
     }
 }
