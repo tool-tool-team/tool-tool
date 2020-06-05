@@ -9,7 +9,6 @@ pub trait PlatformFunctions {
     const APPLICATION_EXTENSIONS: &'static [&'static str];
 }
 
-
 #[cfg(target_os = "windows")]
 mod windows;
 
@@ -21,6 +20,3 @@ mod linux;
 
 #[cfg(target_os = "linux")]
 pub use linux::*;
-
-
-

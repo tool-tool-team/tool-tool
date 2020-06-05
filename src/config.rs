@@ -56,8 +56,20 @@ pub fn get_config() -> Result<Configuration> {
             }
         }
     }
-    configuration.cache_dir.get_or_insert(config_path.parent().expect("config parent").join(".tool-tool").join("v1").as_path().to_str().expect("Tool dir").to_string());
-    configuration.configuration_files.push(config_path.to_string_lossy().to_string());
+    configuration.cache_dir.get_or_insert(
+        config_path
+            .parent()
+            .expect("config parent")
+            .join(".tool-tool")
+            .join("v1")
+            .as_path()
+            .to_str()
+            .expect("Tool dir")
+            .to_string(),
+    );
+    configuration
+        .configuration_files
+        .push(config_path.to_string_lossy().to_string());
     Ok(configuration)
 }
 

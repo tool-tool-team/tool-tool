@@ -1,17 +1,17 @@
 use crate::config::{Configuration, ToolConfiguration};
 use crate::download::download;
 use crate::platform::{Platform, PlatformFunctions};
+use crate::template::template;
 use crate::Result;
 use anyhow::bail;
 use anyhow::Context;
 use flate2::read::GzDecoder;
+use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fs::File;
 use std::ops::Deref;
 use std::path::PathBuf;
 use tar::Archive;
-use crate::template::template;
-use std::collections::HashMap;
 
 pub struct Cache {
     configuration: Configuration,
@@ -53,18 +53,24 @@ impl Cache {
             let tool_dir = self.get_tool_dir(tool);
             if tool_dir.exists() {
                 verbose!(
-                    "Tool Directory for {} v{} found, skipping download",
+                    "Tool found, skipping download for {} v{}",
                     tool.name,
                     tool.version
                 );
                 continue;
             }
-            verbose!("Using tmp_dir {:?}", tmp_dir);
             std::fs::create_dir_all(&tmp_dir)?;
             std::fs::create_dir_all(tool_dir.parent().expect("Parent should exist"))?;
             let url = Platform::get_download_url(tool).context("No download url configured")?;
             let file_name = url.rsplitn(2, "/").next().unwrap();
-            verbose!("Downloading <{} {}> ({}) from <{}>", tool.name, tool.version, file_name, url);
+            verbose!(
+                "Downloading <{} {}> ({}) from <{}>",
+                tool.name,
+                tool.version,
+                file_name,
+                url
+            );
+            verbose!("Using tmp_dir {:?}", tmp_dir);
             let file_path = tmp_dir.join(file_name);
             download(url, &file_path)?;
             let extract_dir = tmp_dir.join(&tool.name);
@@ -77,7 +83,11 @@ impl Cache {
                 let mut archive = zip::ZipArchive::new(file).unwrap();
                 for i in 0..archive.len() {
                     let mut file = archive.by_index(i).unwrap();
-                    let file_name: PathBuf = file.sanitized_name().components().skip(tool.strip_directories).collect();
+                    let file_name: PathBuf = file
+                        .sanitized_name()
+                        .components()
+                        .skip(tool.strip_directories)
+                        .collect();
                     let outpath = extract_dir.join(file_name);
 
                     if (&*file.name()).ends_with('/') {
@@ -98,7 +108,11 @@ impl Cache {
                 let mut archive = Archive::new(tar);
                 for entry in archive.entries()? {
                     let mut entry = entry?;
-                    let path: PathBuf = entry.path()?.components().skip(tool.strip_directories).collect();
+                    let path: PathBuf = entry
+                        .path()?
+                        .components()
+                        .skip(tool.strip_directories)
+                        .collect();
                     let outpath = extract_dir.join(path);
                     std::fs::create_dir_all(outpath.parent().expect("parent"))?;
                     entry.unpack(&outpath)?;
@@ -132,26 +146,36 @@ impl Cache {
             .map(Deref::deref)
             .unwrap_or(command);
         let tool_dir = self.get_tool_dir(tool_configuration);
-        let replace_fn = |name: &str| {
-            match name {
-                "dir" => Ok(tool_dir.to_string_lossy().to_string()),
-                name => {
-                    if name.starts_with("cmd:") {
-                        let command_name = &name[4..];
-                        let command_line = self.get_command_line(command_name).with_context(|| format!("Could not find tool command '{}'", command_name))?;
-                        Ok(command_line.binary)
-                    } else if name.starts_with("dir:") {
-                        let tool_name = &name[4..];
-                        let tool = self.configuration.tools.iter().find(|tool| tool.name == tool_name).with_context(|| format!("Could not find tool '{}' in tools list", tool_name))?;
-                        let tool_dir = self.get_tool_dir(tool);
-                        Ok(tool_dir.to_string_lossy().to_string())
-                    } else {
-                        bail!("Unsupported template: '{}'", name)
-                    }
+        let replace_fn = |name: &str| match name {
+            "dir" => Ok(tool_dir.to_string_lossy().to_string()),
+            name => {
+                if name.starts_with("cmd:") {
+                    let command_name = &name[4..];
+                    let command_line = self.get_command_line(command_name).with_context(|| {
+                        format!("Could not find tool command '{}'", command_name)
+                    })?;
+                    Ok(command_line.binary)
+                } else if name.starts_with("dir:") {
+                    let tool_name = &name[4..];
+                    let tool = self
+                        .configuration
+                        .tools
+                        .iter()
+                        .find(|tool| tool.name == tool_name)
+                        .with_context(|| {
+                            format!("Could not find tool '{}' in tools list", tool_name)
+                        })?;
+                    let tool_dir = self.get_tool_dir(tool);
+                    Ok(tool_dir.to_string_lossy().to_string())
+                } else {
+                    bail!("Unsupported template: '{}'", name)
                 }
             }
         };
-        let command_results: Vec<Result<String>> = command_line.split(" ").map(|part| template(part, replace_fn)).collect();
+        let command_results: Vec<Result<String>> = command_line
+            .split(" ")
+            .map(|part| template(part, replace_fn))
+            .collect();
         let command_parts: Result<Vec<String>> = command_results.into_iter().collect();
         let mut command_parts: Vec<String> = command_parts?;
         let command = command_parts.remove(0);
@@ -164,7 +188,12 @@ impl Cache {
 
         let mut env = tool_configuration.env.clone();
         for (key, value) in &mut env {
-            *value = template(value, replace_fn).with_context(|| format!("Could not replace template string for env '{}' to '{}'", key, value))?;
+            *value = template(value, replace_fn).with_context(|| {
+                format!(
+                    "Could not replace template string for env '{}' to '{}'",
+                    key, value
+                )
+            })?;
         }
 
         Ok(CommandLine {

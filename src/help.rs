@@ -1,5 +1,5 @@
-use crate::{DESCRIPTION, NAME, VERSION};
 use crate::config::Configuration;
+use crate::{DESCRIPTION, NAME, VERSION};
 
 struct Command {
     pub name: String,
@@ -31,11 +31,20 @@ pub fn print_help(configuration: &Configuration) {
         }
     }
     commands.sort_by_key(|command| command.name.clone());
-    commands.insert(0, Command {
-        name: "Command".to_string(),
-        tool: "Tool".to_string(),
-    });
+    commands.insert(
+        0,
+        Command {
+            name: "Command".to_string(),
+            tool: "Tool".to_string(),
+        },
+    );
     for command in commands {
-        println!("   {:<max_name$}  {:<max_tool$}", command.name, command.tool, max_name= max_name, max_tool=max_tool);
+        println!(
+            "   {:<max_name$}  {:<max_tool$}",
+            command.name,
+            command.tool,
+            max_name = max_name,
+            max_tool = max_tool
+        );
     }
 }
