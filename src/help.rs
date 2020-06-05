@@ -12,6 +12,9 @@ pub fn print_help(configuration: &Configuration) {
     println!();
     println!("{}", DESCRIPTION);
     println!();
+    for configuration_file in &configuration.configuration_files {
+        println!("Loaded configuration from {}", configuration_file);
+    }
     println!("Available commands:");
     println!();
     let mut commands = vec![];

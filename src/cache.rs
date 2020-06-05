@@ -26,8 +26,12 @@ pub struct CommandLine {
 
 impl Cache {
     pub fn create(configuration: Configuration) -> Result<Self> {
-        let cache_dir = PathBuf::from(configuration.cache_dir.as_deref().expect("cache dir"));
-        verbose!("Using cache_dir {:?}", cache_dir);
+        for configuration_file in &configuration.configuration_files {
+            verbose!("Loaded configuration from {}", configuration_file);
+        }
+        let cache_dir = configuration.cache_dir.as_deref().expect("cache dir");
+        verbose!("Using cache_dir {}", cache_dir);
+        let cache_dir = PathBuf::from(cache_dir);
         let tools_dir = cache_dir.join("tools");
         Ok(Cache {
             configuration,

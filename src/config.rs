@@ -7,6 +7,8 @@ use std::fs::File;
 pub struct Configuration {
     pub cache_dir: Option<String>,
     pub tools: Vec<ToolConfiguration>,
+    #[serde(skip_deserializing)]
+    pub configuration_files: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
@@ -50,11 +52,12 @@ pub fn get_config() -> Result<Configuration> {
         // Add missing dirs
         for (_, value) in &mut tool.commands {
             if !value.contains("${dir}") {
-                *value = format!("${{dir}}/{}", value);
+                *value = format!("${{dir}}{}{}", std::path::MAIN_SEPARATOR, value);
             }
         }
     }
-    configuration.cache_dir.get_or_insert(config_path.parent().expect("config parent").join(".tool-tool/v1").as_path().to_str().expect("Tool dir").to_string());
+    configuration.cache_dir.get_or_insert(config_path.parent().expect("config parent").join(".tool-tool").join("v1").as_path().to_str().expect("Tool dir").to_string());
+    configuration.configuration_files.push(config_path.to_string_lossy().to_string());
     Ok(configuration)
 }
 
