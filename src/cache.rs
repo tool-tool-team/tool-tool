@@ -63,7 +63,7 @@ impl Cache {
             std::fs::create_dir_all(tool_dir.parent().expect("Parent should exist"))?;
             let url = Platform::get_download_url(tool).with_context(|| format!("No download url configured for {}", tool.name))?;
             let file_name = url.rsplitn(2, "/").next().unwrap();
-            verbose!(
+            report!(
                 "Downloading <{} {}> ({}) from <{}>",
                 tool.name,
                 tool.version,
@@ -78,6 +78,7 @@ impl Cache {
             std::fs::create_dir_all(&extract_dir)?;
             let zip_extension = Some(OsStr::new("zip"));
             let gz_extension = Some(OsStr::new("gz"));
+            let tgz_extension = Some(OsStr::new("tgz"));
             if extension == zip_extension {
                 let file = File::open(file_path)?;
                 let mut archive = zip::ZipArchive::new(file).unwrap();
@@ -102,7 +103,7 @@ impl Cache {
                         std::io::copy(&mut file, &mut outfile).unwrap();
                     }
                 }
-            } else if extension == gz_extension {
+            } else if extension == gz_extension || extension == tgz_extension {
                 let file = File::open(file_path)?;
                 let tar = GzDecoder::new(file);
                 let mut archive = Archive::new(tar);
@@ -117,6 +118,8 @@ impl Cache {
                     std::fs::create_dir_all(outpath.parent().expect("parent"))?;
                     entry.unpack(&outpath)?;
                 }
+            } else if extension == None {
+                std::fs::rename(file_path.file_name().expect("filename"), extract_dir.join(&tool.name))?;
             } else {
                 bail!(
                     "Unsupported file extension for file {}: {:?}",
@@ -126,6 +129,7 @@ impl Cache {
             }
             Platform::rename_atomically(&extract_dir, &tool_dir)?
         }
+        std::fs::remove_dir_all(tmp_dir)?;
         Ok(())
     }
 

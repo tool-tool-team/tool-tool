@@ -8,6 +8,13 @@ macro_rules! verbose {
         }
     });
 }
+
+macro_rules! report {
+     ($($arg:tt)+) => ({
+        print!("🔧 ");
+        println!($($arg)+);
+    });
+}
 pub mod args;
 pub mod cache;
 pub mod config;

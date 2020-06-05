@@ -3,9 +3,9 @@ use crate::platform::PlatformFunctions;
 use crate::Result;
 use std::path::Path;
 
-pub struct Windows;
+pub struct Linux;
 
-impl PlatformFunctions for Windows {
+impl PlatformFunctions for Linux {
     fn get_download_url(tool_configuration: &ToolConfiguration) -> Option<&str> {
         tool_configuration
             .download
