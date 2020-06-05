@@ -61,3 +61,35 @@ tools:
     strip_directories: 0
     download:
       windows: https://github.com/extrawurst/gitui/releases/download/v${version}/gitui-win.tar.gz
+
+  - name: bazel
+    version: 3.2.0
+    strip_directories: 0
+    download:
+      windows: https://github.com/bazelbuild/bazel/releases/download/${version}/bazel-${version}-windows-x86_64.zip
+
+  - name: Rust
+    version: 1.44.0
+    download:
+      windows: https://static.rust-lang.org/dist/rust-${version}-x86_64-pc-windows-gnu.tar.gz
+      linux: https://static.rust-lang.org/dist/rust-${version}-x86_64-unknown-linux-gnu.tar.gz
+    commands:
+      rustc: rustc/bin/rustc
+      cargo: cargo/bin/cargo
+
+  - name: Go
+    version: 1.14.4
+    download:
+      windows: https://dl.google.com/go/go${version}.windows-amd64.zip
+      linux: https://dl.google.com/go/go${version}.linux-amd64.tar.gz
+    commands:
+      go: bin/go
+      gofmt: bin/gofmt
+
+  - name: Python
+    version: 3.8.3
+    strip_directories: 0
+    download:
+      windows: https://www.python.org/ftp/python/${version}/python-${version}-embed-amd64.zip
+    commands:
+      python: python
