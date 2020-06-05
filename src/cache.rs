@@ -61,7 +61,7 @@ impl Cache {
             }
             std::fs::create_dir_all(&tmp_dir)?;
             std::fs::create_dir_all(tool_dir.parent().expect("Parent should exist"))?;
-            let url = Platform::get_download_url(tool).context("No download url configured")?;
+            let url = Platform::get_download_url(tool).with_context(|| format!("No download url configured for {}", tool.name))?;
             let file_name = url.rsplitn(2, "/").next().unwrap();
             verbose!(
                 "Downloading <{} {}> ({}) from <{}>",

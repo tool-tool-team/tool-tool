@@ -53,6 +53,7 @@ tools:
     strip_directories: 0
     download:
       windows: https://www.nethack.org/download/${version}/nethack-366-win-x86.zip
+      linux: https://www.nethack.org/download/${version}/nethack-366-src.tgz
     commands:
       nethack: NetHackW
 
@@ -61,12 +62,14 @@ tools:
     strip_directories: 0
     download:
       windows: https://github.com/extrawurst/gitui/releases/download/v${version}/gitui-win.tar.gz
+      linux: https://github.com/extrawurst/gitui/releases/download/v${version}/gitui-linux-musl.tar.gz
 
   - name: bazel
     version: 3.2.0
     strip_directories: 0
     download:
       windows: https://github.com/bazelbuild/bazel/releases/download/${version}/bazel-${version}-windows-x86_64.zip
+      linux: https://github.com/bazelbuild/bazel/releases/download/${version}/bazel-${version}-linux-x86_64
 
   - name: Rust
     version: 1.44.0
@@ -91,5 +94,8 @@ tools:
     strip_directories: 0
     download:
       windows: https://www.python.org/ftp/python/${version}/python-${version}-embed-amd64.zip
+      # No "plain" linux binaries available it seems
+      linux: https://www.python.org/ftp/python/${version}/python-${version}-embed-amd64.zip
     commands:
       python: python
+
