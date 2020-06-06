@@ -28,7 +28,11 @@ pub fn run_invocation(invocation: Invocation, configuration: Configuration) -> R
         .with_context(|| format!("Unable to run invocation {:?}", command))?;
     let exitcode = status.code().unwrap_or(0);
     if exitcode != 0 {
-        report!("Command '{}' terminated with exit code {}", invocation.command_name, exitcode);
+        report!(
+            "Command '{}' terminated with exit code {}",
+            invocation.command_name,
+            exitcode
+        );
     }
     exit(exitcode);
 }

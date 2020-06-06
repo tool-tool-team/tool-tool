@@ -1,0 +1,31 @@
+image: rust:1.44.0
+
+test:
+  script:
+    - infra/ci/ci.sh test
+  cache:
+    paths:
+      - target/
+
+build:
+  script:
+    - infra/ci/ci.sh build
+  cache:
+    paths:
+      - target/
+
+format:
+  script:
+    - rustup component add rustfmt
+    - infra/ci/ci.sh fmt
+  cache:
+    paths:
+      - target/
+
+clippy:
+  script:
+    - rustup component add clippy
+    - infra/ci/ci.sh clippy
+  cache:
+    paths:
+      - target/
