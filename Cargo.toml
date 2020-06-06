@@ -27,3 +27,6 @@ tar = "0.4.28"
 
 [profile.release]
 debug = true
+
+[dev-dependencies]
+insta = "0.16.0"

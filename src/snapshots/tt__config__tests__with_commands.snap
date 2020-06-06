@@ -1,0 +1,33 @@
+---
+source: src/config.rs
+expression: config
+---
+Configuration {
+    cache_dir: Some(
+        "root/.tool-tool/v1",
+    ),
+    tools: [
+        ToolConfiguration {
+            name: "xyz",
+            version: "0.17.0",
+            download: DownloadUrls {
+                default: Some(
+                    "https://default.tar.gz",
+                ),
+                linux: None,
+                windows: Some(
+                    "https://windows.tar.gz",
+                ),
+            },
+            commands: {
+                "fizz": "${dir}/buzz",
+                "foo": "${dir}/bar",
+            },
+            env: {},
+            strip_directories: 0,
+        },
+    ],
+    configuration_files: [
+        "root/foo.yaml",
+    ],
+}

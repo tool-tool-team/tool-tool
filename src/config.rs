@@ -2,6 +2,8 @@ use crate::Result;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs::File;
+use std::io::Read;
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Configuration {
@@ -40,7 +42,11 @@ pub fn get_config() -> Result<Configuration> {
     // TODO: resolve upwards
     let config_path = std::env::current_dir()?.join(".tool-tool.v1.yaml");
     verbose!("Reading configuration from {:?}", config_path);
-    let mut configuration: Configuration = serde_yaml::from_reader(File::open(&config_path)?)?;
+    read_config(Box::new(File::open(&config_path)?), &config_path.to_string_lossy())
+}
+
+fn read_config(mut reader: Box<dyn Read>, path: &str) -> Result<Configuration> {
+    let mut configuration: Configuration = serde_yaml::from_reader(reader.as_mut())?;
     for tool in &mut configuration.tools {
         replace_templates(&mut tool.download.default, &tool.version);
         replace_templates(&mut tool.download.linux, &tool.version);
@@ -52,12 +58,12 @@ pub fn get_config() -> Result<Configuration> {
         // Add missing dirs
         for value in &mut tool.commands.values_mut() {
             if !value.contains("${dir}") {
-                *value = format!("${{dir}}{}{}", std::path::MAIN_SEPARATOR, value);
+                *value = format!("${{dir}}/{}", value);
             }
         }
     }
     configuration.cache_dir.get_or_insert(
-        config_path
+        PathBuf::from(path)
             .parent()
             .expect("config parent")
             .join(".tool-tool")
@@ -65,16 +71,59 @@ pub fn get_config() -> Result<Configuration> {
             .as_path()
             .to_str()
             .expect("Tool dir")
-            .to_string(),
+            .to_string()
+            .replace('\\', "/")
     );
     configuration
         .configuration_files
-        .push(config_path.to_string_lossy().to_string());
+        .push(path.to_string());
     Ok(configuration)
 }
 
 fn replace_templates(string: &mut Option<String>, version: &str) {
     if let Some(inner) = string {
         *string = Some(inner.replace("${version}", version));
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Cursor;
+    use insta::assert_debug_snapshot;
+
+    fn verify_config(string: &'static str) {
+        let cursor = Cursor::new(string.as_bytes());
+        let config = read_config(Box::new(cursor), "root/foo.yaml").unwrap();
+        assert_debug_snapshot!(config);
+    }
+
+    #[test]
+    fn simple() {
+        verify_config(r#"
+tools:
+  - name: lsd
+    version: 0.17.0
+    download:
+      linux: https://github.com/Peltoche/lsd/releases/download/${version}/lsd-${version}-x86_64-unknown-linux-gnu.tar.gz
+      windows: https://github.com/Peltoche/lsd/releases/download/${version}/lsd-${version}-x86_64-pc-windows-msvc.zip
+        "#);
+    }
+
+    #[test]
+    fn with_commands() {
+        verify_config(r#"
+tools:
+  - name: xyz
+    version: 0.17.0
+    strip_directories: 0
+    download:
+      default: https://default.tar.gz
+      windows: https://windows.tar.gz
+    commands:
+      foo: bar
+      fizz: ${dir}/buzz
+        "#);
     }
 }
