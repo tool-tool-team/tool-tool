@@ -41,6 +41,10 @@ build_linux() {
 
 build_windows() {
   cargo build --release --target x86_64-pc-windows-gnu
+  ls -lah target/x86_64-pc-windows-gnu/release/tt.exe
+  strip target/x86_64-pc-windows-gnu/release/tt.exe
+  ls -lah target/x86_64-pc-windows-gnu/release/tt.exe
+
 }
 
 rustc --version

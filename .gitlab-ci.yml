@@ -9,6 +9,7 @@ test:
 
 junit:
   script:
+    - ls -lah tools/bin
     - "[ ! -f tools/bin/cargo-junit ] && cargo install cargo-junit --root tools"
     - PATH="tools/bin/:$PATH" infra/ci/ci.sh junit
   cache:
@@ -50,7 +51,9 @@ build-windows:
   cache:
     paths:
       - target/
-
+  artifacts:
+    paths:
+      - target/x86_64-pc-windows-gnu/release/tt.exe
 format:
   script:
     - rustup component add rustfmt
