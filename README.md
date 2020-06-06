@@ -2,6 +2,9 @@
 
 tool-tool - a light-weight meta-tool to version and install tool dependencies for your software projects
 
+[![Crates.io](https://img.shields.io/crates/v/tool-tool.svg)](https://crates.io/crates/tool-tool)
+[![pipeline status](https://gitlab.com/manuelwoelker/tool-tool/badges/master/pipeline.svg)](https://gitlab.com/manuelwoelker/tool-tool/-/commits/master) 
+
 **WARNING**: Work in progress - comments, contributions and feedback welcome
 
 tool-tool is simple way to automatically manage a project's tool dependencies. You should never have to worry about:
