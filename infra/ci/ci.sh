@@ -34,6 +34,9 @@ coverage() {
 
 build_linux() {
   cargo build --release
+  ls -lah target/release/tt
+  strip target/release/tt
+  ls -lah target/release/tt
 }
 
 build_windows() {
