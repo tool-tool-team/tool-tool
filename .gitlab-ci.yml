@@ -13,6 +13,9 @@ build:
   cache:
     paths:
       - target/
+  artifacts:
+    paths:
+      - target/release/tt
 
 format:
   script:
