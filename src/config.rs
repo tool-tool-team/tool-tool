@@ -1,5 +1,5 @@
 use crate::Result;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
@@ -42,7 +42,10 @@ pub fn get_config() -> Result<Configuration> {
     // TODO: resolve upwards
     let config_path = std::env::current_dir()?.join(".tool-tool.v1.yaml");
     verbose!("Reading configuration from {:?}", config_path);
-    read_config(Box::new(File::open(&config_path)?), &config_path.to_string_lossy())
+    read_config(
+        Box::new(File::open(&config_path)?),
+        &config_path.to_string_lossy(),
+    )
 }
 
 fn read_config(mut reader: Box<dyn Read>, path: &str) -> Result<Configuration> {
@@ -72,11 +75,9 @@ fn read_config(mut reader: Box<dyn Read>, path: &str) -> Result<Configuration> {
             .to_str()
             .expect("Tool dir")
             .to_string()
-            .replace('\\', "/")
+            .replace('\\', "/"),
     );
-    configuration
-        .configuration_files
-        .push(path.to_string());
+    configuration.configuration_files.push(path.to_string());
     Ok(configuration)
 }
 
@@ -85,7 +86,6 @@ fn replace_templates(string: &mut Option<String>, version: &str) {
         *string = Some(inner.replace("${version}", version));
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -100,24 +100,26 @@ mod tests {
         settings.bind(|| {
             insta::assert_yaml_snapshot!(config);
         });
-
     }
 
     #[test]
     fn simple() {
-        verify_config(r#"
+        verify_config(
+            r#"
 tools:
   - name: lsd
     version: 0.17.0
     download:
       linux: https://github.com/Peltoche/lsd/releases/download/${version}/lsd-${version}-x86_64-unknown-linux-gnu.tar.gz
       windows: https://github.com/Peltoche/lsd/releases/download/${version}/lsd-${version}-x86_64-pc-windows-msvc.zip
-        "#);
+        "#,
+        );
     }
 
     #[test]
     fn with_commands() {
-        verify_config(r#"
+        verify_config(
+            r#"
 tools:
   - name: xyz
     version: 0.17.0
@@ -128,6 +130,7 @@ tools:
     commands:
       foo: bar
       fizz: ${dir}/buzz
-        "#);
+        "#,
+        );
     }
 }
