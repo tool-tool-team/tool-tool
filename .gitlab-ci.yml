@@ -9,22 +9,24 @@ test:
 
 junit:
   script:
-    - cargo install cargo-junit
-    - infra/ci/ci.sh junit
+    - "[ ! -f tools/bin/cargo-junit ] && cargo install cargo-junit --root tools"
+    - PATH="tools/bin/:$PATH" infra/ci/ci.sh junit
   cache:
     paths:
       - target/
+      - tools/
   artifacts:
     reports:
       junit: target/JUnit.xml
 
 coverage:
   script:
-    - cargo install cargo-tarpaulin -f
-    - infra/ci/ci.sh coverage
+    - "[ ! -f tools/bin/cargo-tarpaulin ] && cargo install cargo-tarpaulin --root tools"
+    - PATH="tools/bin/:$PATH" infra/ci/ci.sh coverage
   cache:
     paths:
       - target/
+      - tools/
 
 build-linux:
   script:
