@@ -6,6 +6,8 @@ if [ -z "$1" ]
     exit 1
 fi
 
+export RUST_BACKTRACE=1
+
 set -e
 set -u
 set -x
