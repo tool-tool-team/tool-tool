@@ -22,8 +22,16 @@ test() {
   cargo test
 }
 
-build() {
+junit() {
+  cargo junit --name target/JUnit.xml
+}
+
+build_linux() {
   cargo build --release
+}
+
+build_windows() {
+  cargo build --release --target x86_64-pc-windows-gnu
 }
 
 rustc --version

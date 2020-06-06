@@ -7,15 +7,39 @@ test:
     paths:
       - target/
 
-build:
+junit:
   script:
-    - infra/ci/ci.sh build
+    - cargo install cargo-junit
+    - infra/ci/ci.sh junit
+  cache:
+    paths:
+      - target/
+  artifacts:
+    reports:
+      junit: target/JUnit.xml
+
+build-linux:
+  script:
+    - infra/ci/ci.sh build_linux
   cache:
     paths:
       - target/
   artifacts:
     paths:
       - target/release/tt
+
+build-windows:
+  script:
+    - uname -a
+    - apt-get update
+    - apt-get -y install mingw-w64
+    - rustup toolchain install stable-x86_64-pc-windows-gnu
+    - rustup target add x86_64-pc-windows-gnu
+    - infra/ci/ci.sh build_windows
+    - ls target
+  cache:
+    paths:
+      - target/
 
 format:
   script:
