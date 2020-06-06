@@ -1,11 +1,11 @@
 use crate::Result;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Configuration {
     pub cache_dir: Option<String>,
     pub tools: Vec<ToolConfiguration>,
@@ -13,7 +13,7 @@ pub struct Configuration {
     pub configuration_files: Vec<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ToolConfiguration {
     pub name: String,
     pub version: String,
@@ -31,7 +31,7 @@ fn default_strip_directories() -> usize {
     1
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DownloadUrls {
     pub default: Option<String>,
     pub linux: Option<String>,
@@ -91,12 +91,16 @@ fn replace_templates(string: &mut Option<String>, version: &str) {
 mod tests {
     use super::*;
     use std::io::Cursor;
-    use insta::assert_debug_snapshot;
 
     fn verify_config(string: &'static str) {
         let cursor = Cursor::new(string.as_bytes());
         let config = read_config(Box::new(cursor), "root/foo.yaml").unwrap();
-        assert_debug_snapshot!(config);
+        let mut settings = insta::Settings::clone_current();
+        settings.set_sort_maps(true);
+        settings.bind(|| {
+            insta::assert_yaml_snapshot!(config);
+        });
+
     }
 
     #[test]

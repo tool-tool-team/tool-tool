@@ -2,31 +2,17 @@
 source: src/config.rs
 expression: config
 ---
-Configuration {
-    cache_dir: Some(
-        "root/.tool-tool/v1",
-    ),
-    tools: [
-        ToolConfiguration {
-            name: "lsd",
-            version: "0.17.0",
-            download: DownloadUrls {
-                default: None,
-                linux: Some(
-                    "https://github.com/Peltoche/lsd/releases/download/0.17.0/lsd-0.17.0-x86_64-unknown-linux-gnu.tar.gz",
-                ),
-                windows: Some(
-                    "https://github.com/Peltoche/lsd/releases/download/0.17.0/lsd-0.17.0-x86_64-pc-windows-msvc.zip",
-                ),
-            },
-            commands: {
-                "lsd": "${dir}/lsd",
-            },
-            env: {},
-            strip_directories: 1,
-        },
-    ],
-    configuration_files: [
-        "root/foo.yaml",
-    ],
-}
+cache_dir: root/.tool-tool/v1
+tools:
+  - name: lsd
+    version: 0.17.0
+    download:
+      default: ~
+      linux: "https://github.com/Peltoche/lsd/releases/download/0.17.0/lsd-0.17.0-x86_64-unknown-linux-gnu.tar.gz"
+      windows: "https://github.com/Peltoche/lsd/releases/download/0.17.0/lsd-0.17.0-x86_64-pc-windows-msvc.zip"
+    commands:
+      lsd: "${dir}/lsd"
+    env: {}
+    strip_directories: 1
+configuration_files:
+  - root/foo.yaml
