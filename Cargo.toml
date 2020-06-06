@@ -2,8 +2,10 @@
 name = "tool-tool"
 version = "0.1.0"
 authors = ["Manuel Woelker <github@manuel.woelker.org>"]
+license = "Apache-2.0"
+repository = "https://gitlab.com/manuelwoelker/tool-tool"
 edition = "2018"
-description = "A light-weight meta-tool to version and install tool dependencies for your software projects"
+description = "🛠 A light-weight meta-tool to version and install tool dependencies for your software projects"
 
 [dependencies]
 anyhow = "1.0.31"
