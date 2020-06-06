@@ -11,7 +11,7 @@ impl PlatformFunctions for Linux {
             .download
             .linux
             .as_deref()
-            .or(tool_configuration.download.default.as_deref())
+            .or_else(|| tool_configuration.download.default.as_deref())
     }
 
     fn rename_atomically(src: &Path, dst: &Path) -> Result<()> {

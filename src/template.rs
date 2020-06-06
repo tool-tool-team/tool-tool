@@ -8,7 +8,7 @@ pub fn template<F: Fn(&str) -> Result<String>>(string: &str, replacer: F) -> Res
     while let Some(start) = haystack.find("${") {
         result += &haystack[..start];
         haystack = &haystack[start + 2..];
-        match haystack.find("}") {
+        match haystack.find('}') {
             None => bail!(
                 "Unclosed template string in template '{}', you may be missing a closing '}}'",
                 string

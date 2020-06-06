@@ -23,9 +23,9 @@ pub fn download(url: &str, path: &Path) -> Result<()> {
         }
         bail!("Error {:?} downloading {}", res.status_code().reason(), url)
     }
-    return Err(anyhow::anyhow!(
+    Err(anyhow::anyhow!(
         "Failed to download {} after {} redirects",
         url,
         MAX_REDIRECTS
-    ));
+    ))
 }

@@ -21,7 +21,7 @@ pub fn print_help(configuration: &Configuration) {
     let mut max_name = 7;
     let mut max_tool = 4;
     for tool in &configuration.tools {
-        for (name, _) in &tool.commands {
+        for name in tool.commands.keys() {
             max_name = max_name.max(name.len());
             max_tool = max_tool.max(tool.name.len());
             commands.push(Command {

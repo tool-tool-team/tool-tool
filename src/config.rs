@@ -50,7 +50,7 @@ pub fn get_config() -> Result<Configuration> {
             tool.commands.insert(tool.name.clone(), tool.name.clone());
         }
         // Add missing dirs
-        for (_, value) in &mut tool.commands {
+        for value in &mut tool.commands.values_mut() {
             if !value.contains("${dir}") {
                 *value = format!("${{dir}}{}{}", std::path::MAIN_SEPARATOR, value);
             }

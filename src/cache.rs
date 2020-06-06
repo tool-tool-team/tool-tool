@@ -63,7 +63,7 @@ impl Cache {
             std::fs::create_dir_all(tool_dir.parent().expect("Parent should exist"))?;
             let url = Platform::get_download_url(tool)
                 .with_context(|| format!("No download url configured for {}", tool.name))?;
-            let file_name = url.rsplitn(2, "/").next().unwrap();
+            let file_name = url.rsplitn(2, '/').next().unwrap();
             report!(
                 "Downloading <{} {}> ({}) from <{}>",
                 tool.name,
@@ -181,7 +181,7 @@ impl Cache {
             }
         };
         let command_results: Vec<Result<String>> = command_line
-            .split(" ")
+            .split(' ')
             .map(|part| template(part, replace_fn))
             .collect();
         let command_parts: Result<Vec<String>> = command_results.into_iter().collect();

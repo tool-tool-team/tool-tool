@@ -31,9 +31,9 @@ use crate::invocation::run_invocation;
 use anyhow::Context;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-pub const NAME: &'static str = env!("CARGO_PKG_NAME");
-pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-pub const DESCRIPTION: &'static str = env!("CARGO_PKG_DESCRIPTION");
+pub const NAME: &str = env!("CARGO_PKG_NAME");
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 
 pub static VERBOSE: AtomicBool = AtomicBool::new(false);
 

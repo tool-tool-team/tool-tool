@@ -9,7 +9,7 @@ use std::process::{exit, Command};
 
 pub fn run_invocation(invocation: Invocation, configuration: Configuration) -> Result<()> {
     verbose!("{} {}", NAME, VERSION);
-    let cache = Cache::create(configuration.clone())?;
+    let cache = Cache::create(configuration)?;
     cache.init()?;
     let command_line = cache
         .get_command_line(&invocation.command_name)
