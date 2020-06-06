@@ -18,6 +18,14 @@ junit:
     reports:
       junit: target/JUnit.xml
 
+coverage:
+  script:
+    - cargo install cargo-tarpaulin -f
+    - infra/ci/ci.sh coverage
+  cache:
+    paths:
+      - target/
+
 build-linux:
   script:
     - infra/ci/ci.sh build_linux

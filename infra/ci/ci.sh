@@ -26,6 +26,10 @@ junit() {
   cargo junit --name target/JUnit.xml
 }
 
+coverage() {
+  cargo tarpaulin -v
+}
+
 build_linux() {
   cargo build --release
 }
