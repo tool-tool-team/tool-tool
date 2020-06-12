@@ -1,3 +1,4 @@
+# tool-tool configuration file - cf. https://gitlab.com/manuelwoelker/tool-tool/-/blob/master/README.md
 tools:
   - name: lsd
     version: 0.17.0

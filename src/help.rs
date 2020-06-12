@@ -1,5 +1,7 @@
-use crate::config::Configuration;
-use crate::{DESCRIPTION, NAME, VERSION};
+use crate::config::{Configuration, CONFIG_FILENAME};
+use crate::{Result, HOMEPAGE};
+use crate::{NAME, VERSION};
+use std::io::Write;
 
 struct Command {
     pub name: String,
@@ -7,16 +9,33 @@ struct Command {
     // TODO: description
 }
 
-pub fn print_help(configuration: &Configuration) {
-    println!("🔧 {} {} 🔧", NAME, VERSION);
-    println!();
-    println!("{}", DESCRIPTION);
-    println!();
+pub fn print_help(configuration: &Configuration, out: &mut dyn Write) -> Result<()> {
+    writeln!(out, "🔧 {} {} 🔧", NAME, VERSION)?;
+    writeln!(out)?;
+    writeln!(out, "🔧 A light-weight meta-tool to version and install tool dependencies for your software projects")?;
+    writeln!(out)?;
     for configuration_file in &configuration.configuration_files {
-        println!("Loaded configuration from {}", configuration_file);
+        writeln!(out, "🔧 Loaded configuration from {}", configuration_file)?;
     }
-    println!("Available commands:");
-    println!();
+    writeln!(out)?;
+    writeln!(out, "Usage: tt [-v] <command> <args...>")?;
+    writeln!(out, "  Run tool <command> with the provided arguments")?;
+    writeln!(out)?;
+    writeln!(out, "Flags:")?;
+    writeln!(out, "  -v     Verbose debug output")?;
+    writeln!(out)?;
+    if configuration.configuration_files.is_empty() {
+        writeln!(out, "No tool-tool file named {} found in current directory or ancestors, please create one and configure your tools.", CONFIG_FILENAME)?;
+        writeln!(out, "Refer to {} for further information", HOMEPAGE)?;
+    } else {
+        print_commands(out, &configuration)?;
+    }
+    Ok(())
+}
+
+fn print_commands(out: &mut dyn Write, configuration: &Configuration) -> Result<()> {
+    writeln!(out, "Available commands:")?;
+    writeln!(out)?;
     let mut commands = vec![];
     let mut max_name = 7;
     let mut max_tool = 4;
@@ -39,12 +58,63 @@ pub fn print_help(configuration: &Configuration) {
         },
     );
     for command in commands {
-        println!(
+        writeln!(
+            out,
             "   {:<max_name$}  {:<max_tool$}",
             command.name,
             command.tool,
             max_name = max_name,
             max_tool = max_tool
-        );
+        )?;
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::ToolConfiguration;
+    use std::io::Cursor;
+
+    fn assert_help(configuration: &Configuration) {
+        let mut buffer = Cursor::new(vec![]);
+        print_help(configuration, &mut buffer).unwrap();
+        let help_text = String::from_utf8(buffer.into_inner()).unwrap();
+        insta::assert_yaml_snapshot!(help_text);
+    }
+
+    #[test]
+    fn help_empty() {
+        assert_help(&Configuration::default());
+    }
+
+    #[test]
+    fn help_configured() {
+        let mut configuration = Configuration::default();
+        configuration
+            .configuration_files
+            .push("foo.bar.yaml".to_string());
+        configuration.tools.push(ToolConfiguration {
+            name: "foo".to_string(),
+            version: "1.2.3".to_string(),
+            commands: [("bar".to_string(), "bar".to_string())]
+                .iter()
+                .cloned()
+                .collect(),
+            ..ToolConfiguration::default()
+        });
+        configuration.tools.push(ToolConfiguration {
+            name: "fizz".to_string(),
+            version: "4.5.6".to_string(),
+            commands: [
+                ("buzz".to_string(), "buzz".to_string()),
+                ("apply".to_string(), "apply".to_string()),
+            ]
+            .iter()
+            .cloned()
+            .collect(),
+            ..ToolConfiguration::default()
+        });
+        assert_help(&configuration);
     }
 }

@@ -5,7 +5,9 @@ use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub const CONFIG_FILENAME: &'static str = ".tool-tool.v1.yaml";
+
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Configuration {
     pub cache_dir: Option<String>,
     pub tools: Vec<ToolConfiguration>,
@@ -13,7 +15,7 @@ pub struct Configuration {
     pub configuration_files: Vec<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ToolConfiguration {
     pub name: String,
     pub version: String,
@@ -31,7 +33,7 @@ fn default_strip_directories() -> usize {
     1
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DownloadUrls {
     pub default: Option<String>,
     pub linux: Option<String>,
@@ -40,7 +42,7 @@ pub struct DownloadUrls {
 
 pub fn get_config() -> Result<Configuration> {
     // TODO: resolve upwards
-    let config_path = std::env::current_dir()?.join(".tool-tool.v1.yaml");
+    let config_path = std::env::current_dir()?.join(CONFIG_FILENAME);
     verbose!("Reading configuration from {:?}", config_path);
     read_config(
         Box::new(File::open(&config_path)?),

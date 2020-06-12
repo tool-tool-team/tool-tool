@@ -1,0 +1,5 @@
+---
+source: src/help.rs
+expression: help_text
+---
+"🔧 tool-tool 0.1.0 🔧\n\n🔧 A light-weight meta-tool to version and install tool dependencies for your software projects\n\n🔧 Loaded configuration from foo.bar.yaml\n\nUsage: tt [-v] <command> <args...>\n  Run tool <command> with the provided arguments\n\nFlags:\n  -v     Verbose debug output\n\nAvailable commands:\n\n   Command  Tool\n   apply    fizz 4.5.6\n   bar      foo 1.2.3\n   buzz     fizz 4.5.6\n"
