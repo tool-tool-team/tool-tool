@@ -100,7 +100,9 @@ impl Cache {
                                 std::fs::create_dir_all(&p).unwrap();
                             }
                         }
-                        let mut outfile = std::fs::File::create(&outpath).unwrap();
+                        let mut outfile = std::fs::File::create(&outpath).with_context(|| {
+                            format!("Could not create output file '{:?}'", outpath)
+                        })?;
                         std::io::copy(&mut file, &mut outfile).unwrap();
                     }
                 }
@@ -133,7 +135,10 @@ impl Cache {
             }
             Platform::rename_atomically(&extract_dir, &tool_dir)?
         }
-        std::fs::remove_dir_all(tmp_dir)?;
+        if tmp_dir.exists() {
+            std::fs::remove_dir_all(&tmp_dir)
+                .with_context(|| format!("Could not remove temp dir {:?}", tmp_dir))?;
+        }
         Ok(())
     }
 

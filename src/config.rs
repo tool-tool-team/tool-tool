@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 
-pub const CONFIG_FILENAME: &'static str = ".tool-tool.v1.yaml";
+pub const CONFIG_FILENAME: &str = ".tool-tool.v1.yaml";
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Configuration {

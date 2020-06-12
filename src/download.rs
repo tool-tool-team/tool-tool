@@ -19,6 +19,8 @@ pub fn download(url: &str, path: &Path) -> Result<()> {
                 .get("location")
                 .expect("No location in HTTP redirect")
                 .clone();
+            verbose!("Download redirected to {}", download_url);
+            std::fs::remove_file(path)?;
             continue;
         }
         bail!("Error {:?} downloading {}", res.status_code().reason(), url)

@@ -10,7 +10,8 @@ use std::process::{exit, Command};
 pub fn run_invocation(invocation: Invocation, configuration: Configuration) -> Result<()> {
     verbose!("{} {}", NAME, VERSION);
     let cache = Cache::create(configuration)?;
-    cache.init()?;
+    cache.init().context("Could not initialize cache")?;
+    verbose!("Cache initialized");
     let command_line = cache
         .get_command_line(&invocation.command_name)
         .with_context(|| format!("Could not run command '{}'", invocation.command_name))?;
