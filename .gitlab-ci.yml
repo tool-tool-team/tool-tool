@@ -7,18 +7,19 @@ test:
     paths:
       - target/
 
-junit:
-  script:
-    - "[ ! -f tools/bin/cargo-junit ] && cargo install cargo-junit --root tools"
-    - PATH="tools/bin/:$PATH" infra/ci/ci.sh junit
-  cache:
-    key: junit
-    paths:
-      - target/
-      - tools/
-  artifacts:
-    reports:
-      junit: target/JUnit.xml
+# Junit is currently broken: https://github.com/rustation/cargo-test-junit/issues/5
+#junit:
+#  script:
+#    - "[ ! -f tools/bin/cargo-junit ] && cargo install cargo-junit --root tools"
+#    - PATH="tools/bin/:$PATH" infra/ci/ci.sh junit
+#  cache:
+#    key: junit
+#    paths:
+#      - target/
+#      - tools/
+#  artifacts:
+#    reports:
+#      junit: target/JUnit.xml
 
 coverage:
   script:
