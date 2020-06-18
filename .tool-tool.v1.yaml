@@ -73,7 +73,7 @@ tools:
       linux: https://github.com/bazelbuild/bazel/releases/download/${version}/bazel-${version}-linux-x86_64
 
   - name: Rust
-    version: 1.44.0
+    version: 1.44.1
     download:
       windows: https://static.rust-lang.org/dist/rust-${version}-x86_64-pc-windows-gnu.tar.gz
       linux: https://static.rust-lang.org/dist/rust-${version}-x86_64-unknown-linux-gnu.tar.gz

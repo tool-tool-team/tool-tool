@@ -121,17 +121,11 @@ impl Cache {
                     std::fs::create_dir_all(outpath.parent().expect("parent"))?;
                     entry.unpack(&outpath)?;
                 }
-            } else if extension == None {
+            } else {
                 std::fs::rename(
                     file_path.file_name().expect("filename"),
                     extract_dir.join(&tool.name),
                 )?;
-            } else {
-                bail!(
-                    "Unsupported file extension for file {}: {:?}",
-                    file_name,
-                    extension
-                );
             }
             Platform::rename_atomically(&extract_dir, &tool_dir)?
         }
