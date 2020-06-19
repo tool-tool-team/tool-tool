@@ -25,12 +25,7 @@ pub fn download(url: &str, path: &Path) -> Result<()> {
             continue;
         }
         let code: u16 = res.status_code().into();
-        bail!(
-            "HTTP Error {} downloading {} ({:?})",
-            code,
-            url,
-            res.status_code().reason()
-        )
+        bail!("HTTP Error {} downloading {} ({})", code, url, res.reason())
     }
     Err(anyhow::anyhow!(
         "Failed to download {} after {} redirects",
@@ -48,43 +43,77 @@ mod tests {
 
     #[test]
     fn simple_download() {
-        let _m = mock("GET", "/download")
+        let path = "/download1";
+        let _m = mock("GET", path)
             .with_status(200)
             .with_body("world")
             .create();
 
-        let file = tempfile::NamedTempFile::new().unwrap().into_temp_path();
-        download(&(mockito::server_url() + "/download"), &file).unwrap();
+        let file = create_temp_path();
+        download(&(mockito::server_url() + path), &file).unwrap();
         let result = read_to_string(&file).unwrap();
         assert_eq!("world", result);
     }
 
     #[test]
     fn redirected_download() {
-        let _m = mock("GET", "/download")
+        let path = "/download2";
+        let redirect_path = "/redirect2";
+        let _m = mock("GET", path)
             .with_status(200)
             .with_body("world")
             .create();
-        let _m2 = mock("GET", "/redirect")
+        let _m2 = mock("GET", redirect_path)
             .with_status(301)
-            .with_header("location", &(mockito::server_url() + "/download"))
+            .with_header("location", &(mockito::server_url() + path))
             .create();
 
-        let file = tempfile::NamedTempFile::new().unwrap().into_temp_path();
-        download(&(mockito::server_url() + "/redirect"), &file).unwrap();
+        let file = create_temp_path();
+        download(&(mockito::server_url() + redirect_path), &file).unwrap();
         let result = read_to_string(&file).unwrap();
         assert_eq!(result, "world");
     }
 
+    fn create_temp_path() -> tempfile::TempPath {
+        tempfile::NamedTempFile::new().unwrap().into_temp_path()
+    }
+
     #[test]
     fn download_fail() {
-        let _m = mock("GET", "/download").with_status(500).create();
+        let path = "/download3";
+        let _m = mock("GET", path).with_status(500).create();
 
-        let file = tempfile::NamedTempFile::new().unwrap().into_temp_path();
-        let result = download(&(mockito::server_url() + "/download"), &file);
+        let file = create_temp_path();
+        let result = download(&(mockito::server_url() + path), &file);
+        let error_message = get_error_message(result);
+        assert_eq!(
+            error_message,
+            format!(
+                "HTTP Error 500 downloading http://127.0.0.1:9999{} (Internal Server Error)",
+                path
+            )
+        );
+    }
+
+    fn get_error_message(result: Result<()>) -> String {
         let error_message = result.unwrap_err().to_string();
-        let normalized_error_message =
-            error_message.replace(&format!("{}", mockito::server_address().port()), "9999");
-        assert_eq!(normalized_error_message, "HTTP Error 500 downloading http://127.0.0.1:9999/download (Some(\"Internal Server Error\"))");
+        error_message.replace(&format!("{}", mockito::server_address().port()), "9999")
+    }
+
+    #[test]
+    fn download_redirect_loop() {
+        let path = "/download4";
+        let _m = mock("GET", path)
+            .with_status(301)
+            .with_header("location", &(mockito::server_url() + path))
+            .create();
+
+        let file = create_temp_path();
+        let result = download(&(mockito::server_url() + path), &file);
+        let error_message = get_error_message(result);
+        assert_eq!(
+            error_message,
+            "Failed to download http://127.0.0.1:9999/download4 after 10 redirects"
+        );
     }
 }

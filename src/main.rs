@@ -52,7 +52,7 @@ fn main() -> Result<()> {
             VERBOSE.store(invocation.verbose, Ordering::Relaxed);
             let configuration = get_config().with_context(|| format!("Unable to load configuration, please ensure that a file called {} exists, either in the current directory or an ancestor", CONFIG_FILENAME))?;
             verbose!("{} {}", NAME, VERSION);
-            let cache = Cache::create(configuration)?;
+            let mut cache = Cache::create(configuration)?;
             cache.init().context("Could not initialize cache")?;
             verbose!("Cache initialized");
             let mut command_line = cache

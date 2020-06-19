@@ -35,7 +35,7 @@ mod tests {
         assert_invocation(
             CommandLine {
                 binary: "bash".to_string(),
-                arguments: vec!["-c".to_string(), "echo foo".to_string()],
+                arguments: vec!["-c".to_string(), "echo Executing bash command".to_string()],
                 env: Default::default(),
             },
             0,

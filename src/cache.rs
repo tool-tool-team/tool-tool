@@ -18,6 +18,7 @@ pub struct Cache {
     tools_dir: PathBuf,
 }
 
+#[derive(Debug, Eq, PartialEq)]
 pub struct CommandLine {
     pub binary: String,
     pub arguments: Vec<String>,
@@ -38,7 +39,7 @@ impl Cache {
             tools_dir,
         })
     }
-    pub fn init(&self) -> Result<()> {
+    pub fn init(&mut self) -> Result<()> {
         let tools_dir = &self.tools_dir;
         let configuration = &self.configuration;
         let tmp_dir = tools_dir.join(format!(
@@ -73,7 +74,8 @@ impl Cache {
             );
             verbose!("Using tmp_dir {:?}", tmp_dir);
             let file_path = tmp_dir.join(file_name);
-            download(url, &file_path)?;
+            download(url, &file_path)
+                .with_context(|| format!("Unable to download {} to {:?}", url, file_path))?;
             let extract_dir = tmp_dir.join(&tool.name);
             let extension = file_path.extension();
             std::fs::create_dir_all(&extract_dir)?;
@@ -122,13 +124,15 @@ impl Cache {
                     entry.unpack(&outpath)?;
                 }
             } else {
-                std::fs::rename(
-                    file_path.file_name().expect("filename"),
-                    extract_dir.join(&tool.name),
-                )?;
+                // save as tool name
+                let from = file_path.as_os_str();
+                let to = extract_dir.join(&tool.name);
+                std::fs::rename(from, &to)
+                    .with_context(|| format!("Unable to rename from {:?} to {:?}", from, to))?;
             }
-            Platform::rename_atomically(&extract_dir, &tool_dir)?
+            Platform::rename_atomically(&extract_dir, &tool_dir)?;
         }
+
         if tmp_dir.exists() {
             std::fs::remove_dir_all(&tmp_dir)
                 .with_context(|| format!("Could not remove temp dir {:?}", tmp_dir))?;
@@ -208,5 +212,175 @@ impl Cache {
             arguments: command_parts,
             env,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use mockito::mock;
+    use std::io::{Cursor, Write};
+
+    use super::*;
+    use crate::config::DownloadUrls;
+    use std::fs::read_to_string;
+    use tempfile::TempDir;
+
+    #[test]
+    fn empty_tool_list() {
+        let (configuration, temp_dir) = create_configuration();
+        let mut cache = Cache::create(configuration).unwrap();
+        cache.init().unwrap();
+        assert_eq!(cache.tools_dir, temp_dir.path().join("tools"))
+    }
+
+    fn create_configuration() -> (Configuration, tempfile::TempDir) {
+        let mut configuration: Configuration = Default::default();
+        let temp_dir = tempfile::tempdir().unwrap();
+        configuration.cache_dir = Some(temp_dir.path().to_str().unwrap().to_string());
+        (configuration, temp_dir)
+    }
+
+    #[test]
+    fn download_single_file_tool() {
+        let path = "/cache/tool1";
+        let mut commands = HashMap::new();
+        commands.insert("foo".to_string(), "${dir}/foo bar".to_string());
+        commands.insert("reframe".to_string(), "${dir:foo} ${cmd:foo}".to_string());
+        let _m = mock("GET", path)
+            .with_status(200)
+            .with_body("world")
+            .create();
+        let (mut configuration, temp_dir) = create_configuration();
+        let mut env = HashMap::new();
+        env.insert("XPATH".to_string(), "${dir:foo}".to_string());
+        configuration.tools.push(ToolConfiguration {
+            name: "foo".to_string(),
+            version: "1.2.3".to_string(),
+            download: DownloadUrls {
+                default: Some(mockito::server_url() + path),
+                linux: None,
+                windows: None,
+            },
+            commands,
+            env: env.clone(),
+            strip_directories: 0,
+        });
+        let mut cache = Cache::create(configuration).unwrap();
+        cache.init().unwrap();
+        let dir = temp_dir
+            .path()
+            .join("tools")
+            .join("foo")
+            .join("1.2.3")
+            .to_str()
+            .unwrap()
+            .to_string();
+        env.insert("XPATH".to_string(), dir.clone());
+        assert_eq!(
+            cache.get_command_line("foo").unwrap(),
+            CommandLine {
+                binary: dir.clone() + "/foo",
+                arguments: vec!["bar".to_string()],
+                env: env.clone(),
+            }
+        );
+        assert_eq!(
+            cache.get_command_line("reframe").unwrap(),
+            CommandLine {
+                binary: dir.clone(),
+                arguments: vec![dir + "/foo"],
+                env: env.clone(),
+            }
+        );
+    }
+
+    #[test]
+    fn do_not_download_existing_tool() {
+        let (mut configuration, temp_dir) = create_configuration();
+        configuration.tools.push(ToolConfiguration {
+            name: "foo".to_string(),
+            version: "1.2.3".to_string(),
+            download: DownloadUrls {
+                default: Some("http://url.invalid/tool".to_string()),
+                linux: None,
+                windows: None,
+            },
+            commands: HashMap::new(),
+            env: HashMap::new(),
+            strip_directories: 0,
+        });
+        std::fs::create_dir_all(temp_dir.path().join("tools").join("foo").join("1.2.3")).unwrap();
+        let mut cache = Cache::create(configuration).unwrap();
+        cache.init().unwrap();
+    }
+
+    #[test]
+    fn download_zip() {
+        let path = "/cache/tool.zip";
+
+        let mut zip = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+        let options =
+            zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+        zip.start_file("foo/hello_world.txt", options).unwrap();
+        zip.write(b"Hello, World!").unwrap();
+        zip.add_directory("foo/bar", options).unwrap();
+
+        let buf = zip.finish().unwrap().into_inner();
+
+        let _m = mock("GET", path).with_status(200).with_body(buf).create();
+        let temp_dir = verify_hello_world_txt(path);
+        let path = temp_dir
+            .path()
+            .join("tools")
+            .join("foo")
+            .join("1.2.3")
+            .join("bar");
+        assert!(path.exists(), "directory should exist");
+        assert!(path.is_dir(), "directory should be a directory");
+    }
+
+    fn verify_hello_world_txt(path: &str) -> TempDir {
+        let (mut configuration, temp_dir) = create_configuration();
+        configuration.tools.push(ToolConfiguration {
+            name: "foo".to_string(),
+            version: "1.2.3".to_string(),
+            download: DownloadUrls {
+                default: Some(mockito::server_url() + path),
+                linux: None,
+                windows: None,
+            },
+            commands: HashMap::new(),
+            env: HashMap::new(),
+            strip_directories: 1,
+        });
+        let mut cache = Cache::create(configuration).unwrap();
+        cache.init().unwrap();
+        let path = temp_dir
+            .path()
+            .join("tools")
+            .join("foo")
+            .join("1.2.3")
+            .join("hello_world.txt");
+        let content = read_to_string(path).expect("File hello_world.txt should exist");
+        assert_eq!(content, "Hello, World!");
+        temp_dir
+    }
+
+    #[test]
+    fn download_tar_gz() {
+        let path = "/cache/tool.tar.gz";
+
+        let encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+        let mut ar = tar::Builder::new(encoder);
+        let mut header = tar::Header::new_gnu();
+        header.set_path("foo/hello_world.txt").unwrap();
+        let content = b"Hello, World!";
+        header.set_size(content.len() as u64);
+        header.set_cksum();
+        ar.append(&header, Cursor::new(content)).unwrap();
+        let data = ar.into_inner().unwrap().finish().unwrap();
+
+        let _m = mock("GET", path).with_status(200).with_body(data).create();
+        verify_hello_world_txt(path);
     }
 }
