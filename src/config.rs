@@ -40,9 +40,27 @@ pub struct DownloadUrls {
     pub windows: Option<String>,
 }
 
-pub fn get_config() -> Result<Configuration> {
-    // TODO: resolve upwards
-    let config_path = std::env::current_dir()?.join(CONFIG_FILENAME);
+pub fn get_config(binary_name: &str) -> Result<Configuration> {
+    let binary_path = PathBuf::from(binary_name);
+    let mut parent_directory = binary_path;
+    let mut config_path: PathBuf;
+    loop {
+        config_path = parent_directory.join(CONFIG_FILENAME);
+        if config_path.exists() {
+            break;
+        }
+        parent_directory = parent_directory
+            .parent()
+            .unwrap_or_else(|| {
+                panic!(
+                    "Could not find config file {}, search from directory {:?}",
+                    CONFIG_FILENAME,
+                    PathBuf::from(binary_name).parent().unwrap()
+                )
+            })
+            .to_path_buf();
+    }
+    let config_path = parent_directory.join(CONFIG_FILENAME);
     verbose!("Reading configuration from {:?}", config_path);
     read_config(
         Box::new(File::open(&config_path)?),
@@ -133,6 +151,27 @@ tools:
       foo: bar
       fizz: ${dir}/buzz
         "#,
+        );
+    }
+
+    #[test]
+    fn test_get_config() {
+        let config = get_config(
+            std::env::current_dir()
+                .unwrap()
+                .join("src/config.rs")
+                .to_str()
+                .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            config.configuration_files,
+            vec![std::env::current_dir()
+                .unwrap()
+                .join(".tool-tool.v1.yaml")
+                .to_str()
+                .unwrap()
+                .to_string()]
         );
     }
 }

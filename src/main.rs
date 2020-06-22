@@ -42,15 +42,15 @@ pub static VERBOSE: AtomicBool = AtomicBool::new(false);
 fn main() -> Result<()> {
     let verbose_env = std::env::var("TOOL_TOOL_VERBOSE").is_ok();
     let args = parse_args(&mut std::env::args().skip(1), verbose_env)?;
-
+    let binary = std::env::args().next().unwrap();
     match args {
         Args::Help => {
-            let configuration = get_config().unwrap_or_default();
+            let configuration = get_config(&binary).unwrap_or_default();
             print_help(&configuration, &mut std::io::stdout().lock())?
         }
         Args::Invocation(mut invocation) => {
             VERBOSE.store(invocation.verbose, Ordering::Relaxed);
-            let configuration = get_config().with_context(|| format!("Unable to load configuration, please ensure that a file called {} exists, either in the current directory or an ancestor", CONFIG_FILENAME))?;
+            let configuration = get_config(&binary).with_context(|| format!("Unable to load configuration, please ensure that a file called {} exists, either in the current directory or an ancestor", CONFIG_FILENAME))?;
             verbose!("{} {}", NAME, VERSION);
             let mut cache = Cache::create(configuration)?;
             cache.init().context("Could not initialize cache")?;
