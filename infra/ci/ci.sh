@@ -29,7 +29,7 @@ junit() {
 }
 
 coverage() {
-  cargo tarpaulin -v
+  cargo tarpaulin -v --exclude-files */windows.rs
 }
 
 build_linux() {
