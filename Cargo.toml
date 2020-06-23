@@ -17,7 +17,7 @@ name = "tt"
 
 [dependencies]
 anyhow = "1.0.31"
-http_req = "0.6.1"
+http_req  = {version="^0.7", default-features = false, features = ["rust-tls"]}
 serde = { version = "1.0.111", features = ["derive"] }
 serde_yaml = "0.8.12"
 dirs = "2.0.2"

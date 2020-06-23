@@ -33,17 +33,20 @@ coverage() {
 }
 
 build_linux() {
-  cargo build --release
-  ls -lah target/release/tt
-  strip target/release/tt
-  ls -lah target/release/tt
+  TARGET=x86_64-unknown-linux-musl
+  cargo build --release --target $TARGET
+  ls -lah target/$TARGET/release/tt
+  strip target/$TARGET/release/tt
+  ls -lah target/$TARGET/release/tt
+  ldd target/$TARGET/release/tt
 }
 
 build_windows() {
-  cargo build --release --target x86_64-pc-windows-gnu
-  ls -lah target/x86_64-pc-windows-gnu/release/tt.exe
-  strip target/x86_64-pc-windows-gnu/release/tt.exe
-  ls -lah target/x86_64-pc-windows-gnu/release/tt.exe
+  TARGET=x86_64-pc-windows-gnu
+  cargo build --release --target $TARGET
+  ls -lah target/$TARGET/release/tt.exe
+  strip target/$TARGET/release/tt.exe
+  ls -lah target/$TARGET/release/tt.exe
 
 }
 
