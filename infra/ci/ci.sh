@@ -34,12 +34,15 @@ coverage() {
 
 build_linux() {
   TARGET=x86_64-unknown-linux-musl
+  cargo install cargo-bloat
   cargo build --release --target $TARGET
   ls -lah target/$TARGET/release/tt
   strip target/$TARGET/release/tt
   ls -lah target/$TARGET/release/tt
   # check that this is not dynamically linked
   ldd target/$TARGET/release/tt || true
+  cargo bloat --release --target $TARGET --wide
+  cargo bloat --release --target $TARGET --crates
 }
 
 build_windows() {
