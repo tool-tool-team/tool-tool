@@ -38,7 +38,8 @@ build_linux() {
   ls -lah target/$TARGET/release/tt
   strip target/$TARGET/release/tt
   ls -lah target/$TARGET/release/tt
-  ldd target/$TARGET/release/tt
+  # check that this is not dynamically linked
+  ldd target/$TARGET/release/tt || true
 }
 
 build_windows() {
