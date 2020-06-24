@@ -27,7 +27,7 @@ flate2 = "1.0.14"
 tar = "0.4.28"
 
 [profile.release]
-debug = false
+debug = true
 opt-level = 'z'  # Optimize for size.
 lto = true
 codegen-units = 1
