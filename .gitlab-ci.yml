@@ -44,7 +44,7 @@ build-linux:
       - target/
   artifacts:
     paths:
-      - target/release/tt
+      - target/x86_64-unknown-linux-musl/release/tt
 
 build-windows:
   script:
