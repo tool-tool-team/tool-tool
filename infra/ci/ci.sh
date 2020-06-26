@@ -32,7 +32,7 @@ coverage() {
   cargo tarpaulin -v --exclude-files */windows.rs
 }
 
-build_linux() {
+build_linux_musl() {
   TARGET=x86_64-unknown-linux-musl
   cargo install cargo-bloat
   cargo build --release --target $TARGET
@@ -43,6 +43,14 @@ build_linux() {
   ldd target/$TARGET/release/tt || true
   cargo bloat --release --target $TARGET --wide
   cargo bloat --release --target $TARGET --crates
+}
+
+build_linux() {
+  cargo build --release
+  ls -lah target/release/tt
+ strip target/release/tt
+  ls -lah target/release/tt
+  ldd target/release/tt
 }
 
 build_windows() {
