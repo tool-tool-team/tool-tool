@@ -1,13 +1,11 @@
 use crate::config::ToolConfiguration;
-use crate::platform::{PlatformFunctions, Platform};
-use crate::Result;
-use std::path::Path;
+use crate::platform::Platform;
 
 pub struct Windows;
 
 #[cfg(target_os = "windows")]
-impl PlatformFunctions for Windows {
-    fn rename_atomically(src: &Path, dst: &Path) -> Result<()> {
+impl crate::platform::PlatformFunctions for Windows {
+    fn rename_atomically(src: &std::path::Path, dst: &std::path::Path) -> crate::Result<()> {
         Ok(atomicwrites::move_atomic(src, dst)?)
     }
 }

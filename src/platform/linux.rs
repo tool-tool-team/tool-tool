@@ -1,5 +1,5 @@
 use crate::config::ToolConfiguration;
-use crate::platform::{PlatformFunctions, Platform};
+use crate::platform::{Platform, PlatformFunctions};
 use crate::Result;
 use std::path::Path;
 
@@ -10,7 +10,6 @@ impl PlatformFunctions for Linux {
         Ok(std::fs::rename(src, dst)?)
     }
 }
-
 
 impl Platform for Linux {
     fn get_download_url<'a>(&self, tool_configuration: &'a ToolConfiguration) -> Option<&'a str> {

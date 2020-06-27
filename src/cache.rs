@@ -1,6 +1,6 @@
 use crate::config::{Configuration, ToolConfiguration};
 use crate::download::download;
-use crate::platform::{Platform, PlatformFunctions, PlatformFns};
+use crate::platform::{Platform, PlatformFns, PlatformFunctions};
 use crate::template::template;
 use crate::Result;
 use anyhow::bail;
@@ -64,7 +64,9 @@ impl Cache {
             }
             std::fs::create_dir_all(&tmp_dir)?;
             std::fs::create_dir_all(tool_dir.parent().expect("Parent should exist"))?;
-            let url = self.platform.get_download_url(tool)
+            let url = self
+                .platform
+                .get_download_url(tool)
                 .with_context(|| format!("No download url configured for {}", tool.name))?;
             let file_name = url.rsplitn(2, '/').next().unwrap();
             report!(
@@ -204,7 +206,9 @@ impl Cache {
         let command_parts: Result<Vec<String>> = command_results.into_iter().collect();
         let mut command_parts: Vec<String> = command_parts?;
         let command = command_parts.remove(0);
-        let mut command_candidates = self.platform.get_application_extensions()
+        let mut command_candidates = self
+            .platform
+            .get_application_extensions()
             .iter()
             .map(|extension| PathBuf::from(format!("{}{}", command, extension)));
         let command_path = command_candidates
@@ -258,7 +262,10 @@ mod tests {
     fn download_single_file_tool() {
         let path = "/cache/tool1";
         let mut commands = HashMap::new();
-        commands.insert("foo".to_string(), "${dir}/foo bar ${linux:LLL}${windows:WWW}".to_string());
+        commands.insert(
+            "foo".to_string(),
+            "${dir}/foo bar ${linux:LLL}${windows:WWW}".to_string(),
+        );
         commands.insert("reframe".to_string(), "${dir:foo} ${cmd:foo}".to_string());
         let _m = mock("GET", path)
             .with_status(200)
