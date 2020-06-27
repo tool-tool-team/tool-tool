@@ -47,8 +47,11 @@ build_linux_musl() {
 
 build_linux() {
   cargo build --release
+  cargo install cargo-bloat
+  cargo bloat --release --crates
+  cargo bloat --release -n 100
   ls -lah target/release/tt
- strip target/release/tt
+  strip target/release/tt
   ls -lah target/release/tt
   ldd target/release/tt
 }

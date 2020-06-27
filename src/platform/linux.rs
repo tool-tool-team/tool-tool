@@ -1,12 +1,19 @@
 use crate::config::ToolConfiguration;
-use crate::platform::PlatformFunctions;
+use crate::platform::{PlatformFunctions, Platform};
 use crate::Result;
 use std::path::Path;
 
 pub struct Linux;
 
 impl PlatformFunctions for Linux {
-    fn get_download_url(tool_configuration: &ToolConfiguration) -> Option<&str> {
+    fn rename_atomically(src: &Path, dst: &Path) -> Result<()> {
+        Ok(std::fs::rename(src, dst)?)
+    }
+}
+
+
+impl Platform for Linux {
+    fn get_download_url<'a>(&self, tool_configuration: &'a ToolConfiguration) -> Option<&'a str> {
         tool_configuration
             .download
             .linux
@@ -14,9 +21,11 @@ impl PlatformFunctions for Linux {
             .or_else(|| tool_configuration.download.default.as_deref())
     }
 
-    fn rename_atomically(src: &Path, dst: &Path) -> Result<()> {
-        Ok(std::fs::rename(src, dst)?)
+    fn get_application_extensions(&self) -> &'static [&'static str] {
+        &["", ".sh"]
     }
 
-    const APPLICATION_EXTENSIONS: &'static [&'static str] = &["", ".sh"];
+    fn get_name(&self) -> &'static str {
+        "linux"
+    }
 }

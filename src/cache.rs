@@ -1,6 +1,6 @@
 use crate::config::{Configuration, ToolConfiguration};
 use crate::download::download;
-use crate::platform::{Platform, PlatformFunctions};
+use crate::platform::{Platform, PlatformFunctions, PlatformFns};
 use crate::template::template;
 use crate::Result;
 use anyhow::bail;
@@ -16,6 +16,7 @@ use tar::Archive;
 pub struct Cache {
     configuration: Configuration,
     tools_dir: PathBuf,
+    platform: Box<dyn Platform>,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -37,6 +38,7 @@ impl Cache {
         Ok(Cache {
             configuration,
             tools_dir,
+            platform: Box::new(PlatformFns {}),
         })
     }
     pub fn init(&mut self) -> Result<()> {
@@ -62,7 +64,7 @@ impl Cache {
             }
             std::fs::create_dir_all(&tmp_dir)?;
             std::fs::create_dir_all(tool_dir.parent().expect("Parent should exist"))?;
-            let url = Platform::get_download_url(tool)
+            let url = self.platform.get_download_url(tool)
                 .with_context(|| format!("No download url configured for {}", tool.name))?;
             let file_name = url.rsplitn(2, '/').next().unwrap();
             report!(
@@ -130,7 +132,7 @@ impl Cache {
                 std::fs::rename(from, &to)
                     .with_context(|| format!("Unable to rename from {:?} to {:?}", from, to))?;
             }
-            Platform::rename_atomically(&extract_dir, &tool_dir)?;
+            PlatformFns::rename_atomically(&extract_dir, &tool_dir)?;
         }
 
         if tmp_dir.exists() {
@@ -178,6 +180,18 @@ impl Cache {
                         })?;
                     let tool_dir = self.get_tool_dir(tool);
                     Ok(tool_dir.to_string_lossy().to_string())
+                } else if name.starts_with("linux:") {
+                    if self.platform.get_name() == "linux" {
+                        Ok(name[6..].to_string())
+                    } else {
+                        Ok("".to_string())
+                    }
+                } else if name.starts_with("windows:") {
+                    if self.platform.get_name() == "windows" {
+                        Ok(name[8..].to_string())
+                    } else {
+                        Ok("".to_string())
+                    }
                 } else {
                     bail!("Unsupported template: '{}'", name)
                 }
@@ -190,7 +204,7 @@ impl Cache {
         let command_parts: Result<Vec<String>> = command_results.into_iter().collect();
         let mut command_parts: Vec<String> = command_parts?;
         let command = command_parts.remove(0);
-        let mut command_candidates = Platform::APPLICATION_EXTENSIONS
+        let mut command_candidates = self.platform.get_application_extensions()
             .iter()
             .map(|extension| PathBuf::from(format!("{}{}", command, extension)));
         let command_path = command_candidates
@@ -244,7 +258,7 @@ mod tests {
     fn download_single_file_tool() {
         let path = "/cache/tool1";
         let mut commands = HashMap::new();
-        commands.insert("foo".to_string(), "${dir}/foo bar".to_string());
+        commands.insert("foo".to_string(), "${dir}/foo bar ${linux:LLL}${windows:WWW}".to_string());
         commands.insert("reframe".to_string(), "${dir:foo} ${cmd:foo}".to_string());
         let _m = mock("GET", path)
             .with_status(200)
@@ -276,11 +290,21 @@ mod tests {
             .unwrap()
             .to_string();
         env.insert("XPATH".to_string(), dir.clone());
+        cache.platform = Box::new(crate::platform::Linux {});
         assert_eq!(
             cache.get_command_line("foo").unwrap(),
             CommandLine {
                 binary: dir.clone() + "/foo",
-                arguments: vec!["bar".to_string()],
+                arguments: vec!["bar".to_string(), "LLL".to_string()],
+                env: env.clone(),
+            }
+        );
+        cache.platform = Box::new(crate::platform::Windows {});
+        assert_eq!(
+            cache.get_command_line("foo").unwrap(),
+            CommandLine {
+                binary: dir.clone() + "/foo",
+                arguments: vec!["bar".to_string(), "WWW".to_string()],
                 env: env.clone(),
             }
         );
