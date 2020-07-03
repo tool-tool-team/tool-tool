@@ -8,6 +8,7 @@ use anyhow::Context;
 use flate2::read::GzDecoder;
 use std::collections::HashMap;
 use std::ffi::OsStr;
+use std::fmt;
 use std::fs::File;
 use std::ops::Deref;
 use std::path::PathBuf;
@@ -24,6 +25,17 @@ pub struct CommandLine {
     pub binary: String,
     pub arguments: Vec<String>,
     pub env: HashMap<String, String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct CommandNotFoundError {
+    pub command: String,
+}
+
+impl fmt::Display for CommandNotFoundError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Command '{}' not found", self.command)
+    }
 }
 
 impl Cache {
@@ -154,7 +166,9 @@ impl Cache {
             .tools
             .iter()
             .find(|tool| tool.commands.contains_key(command))
-            .with_context(|| format!("Tool for command {} not found", command))?;
+            .with_context(|| CommandNotFoundError {
+                command: command.to_string(),
+            })?;
         let command_line: &str = tool_configuration
             .commands
             .get(command)

@@ -13,6 +13,7 @@ tools:
       windows: https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk${version}/OpenJDK8U-jdk_x86-32_windows_hotspot_8u252b09.zip
     commands:
       java: bin/java
+      xava: bin/xava # Used for testing missing binaries
 
   - name: maven
     version: 3.6.3

@@ -25,7 +25,7 @@ pub mod platform;
 pub mod template;
 
 use crate::args::{parse_args, Args};
-use crate::cache::Cache;
+use crate::cache::{Cache, CommandNotFoundError};
 use crate::config::{get_config, CONFIG_FILENAME};
 use crate::help::print_help;
 use crate::invocation::run_invocation;
@@ -38,6 +38,8 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const HOMEPAGE: &str = env!("CARGO_PKG_HOMEPAGE");
 
 pub static VERBOSE: AtomicBool = AtomicBool::new(false);
+
+const EXIT_CODE_NOT_FOUND: i32 = 404;
 
 fn main() -> Result<()> {
     let verbose_env = std::env::var("TOOL_TOOL_VERBOSE").is_ok();
@@ -55,8 +57,16 @@ fn main() -> Result<()> {
             let mut cache = Cache::create(configuration)?;
             cache.init().context("Could not initialize cache")?;
             verbose!("Cache initialized");
-            let mut command_line = cache
-                .get_command_line(&invocation.command_name)
+            let command_result = cache.get_command_line(&invocation.command_name);
+            if invocation.from_shim {
+                if let Err(err) = &command_result {
+                    if err.is::<CommandNotFoundError>() {
+                        // Emit special exit code and suppress error output when invoked from shim to let it know
+                        exit(EXIT_CODE_NOT_FOUND);
+                    }
+                }
+            }
+            let mut command_line = command_result
                 .with_context(|| format!("Could not run command '{}'", invocation.command_name))?;
             command_line.arguments.append(&mut invocation.args);
             let exitcode = run_invocation(command_line)?;

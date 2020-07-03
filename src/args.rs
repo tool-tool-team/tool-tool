@@ -10,23 +10,35 @@ pub enum Args {
 pub struct Invocation {
     pub command_name: String,
     pub verbose: bool,
+    pub from_shim: bool,
     pub args: Vec<String>,
 }
 
 pub fn parse_args(args: &mut dyn Iterator<Item = String>, verbose_env: bool) -> Result<Args> {
     if let Some(mut command) = args.next() {
         let mut verbose = verbose_env;
+        let mut from_shim = false;
         if &command == "--help" {
             return Ok(Args::Help);
         }
         let mut rest_args: Vec<_> = args.collect();
-        if &command == "-v" {
-            verbose = true;
-            command = rest_args.remove(0);
+        loop {
+            match command.as_str() {
+                "-v" => {
+                    verbose = true;
+                    command = rest_args.remove(0);
+                }
+                "--from-shim" => {
+                    from_shim = true;
+                    command = rest_args.remove(0);
+                }
+                _ => break,
+            }
         }
         return Ok(Args::Invocation(Invocation {
             command_name: command,
             verbose,
+            from_shim,
             args: rest_args,
         }));
     }
@@ -62,6 +74,7 @@ mod tests {
             Args::Invocation(Invocation {
                 command_name: "shake".to_string(),
                 verbose: false,
+                from_shim: false,
                 args: vec![],
             })
         );
@@ -74,6 +87,7 @@ mod tests {
             Args::Invocation(Invocation {
                 command_name: "stir".to_string(),
                 verbose: false,
+                from_shim: false,
                 args: make_args(&["--rotations", "42"]),
             })
         );
@@ -86,6 +100,7 @@ mod tests {
             Args::Invocation(Invocation {
                 command_name: "foo".to_string(),
                 verbose: true,
+                from_shim: false,
                 args: make_args(&["bar"]),
             })
         );
@@ -98,6 +113,20 @@ mod tests {
             Args::Invocation(Invocation {
                 command_name: "foo".to_string(),
                 verbose: true,
+                from_shim: false,
+                args: make_args(&["bar"]),
+            })
+        );
+    }
+
+    #[test]
+    fn parse_command_from_shim() {
+        assert_eq!(
+            test_args(&["--from-shim", "foo", "bar"], false),
+            Args::Invocation(Invocation {
+                command_name: "foo".to_string(),
+                verbose: false,
+                from_shim: true,
                 args: make_args(&["bar"]),
             })
         );
