@@ -49,6 +49,7 @@ tools:
       default: https://github.com/yarnpkg/yarn/releases/download/v${version}/yarn-v${version}.tar.gz
     commands:
       yarn: ${cmd:node} ${dir}/bin/yarn.js
+      tool-tool-shim: ${cmd:node} ${dir}/bin/yarn.js
 
   - name: nethack
     version: 3.6.6

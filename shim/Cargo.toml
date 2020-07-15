@@ -1,0 +1,14 @@
+[package]
+name = "tool-tool-shim"
+version = "0.1.0"
+authors = ["Manuel Woelker <github@manuel.woelker.org>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "1.0.31"
+
+[profile.release]
+debug = true
+opt-level = 'z'  # Optimize for size.
+lto = true
+codegen-units = 1
