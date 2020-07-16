@@ -4,6 +4,11 @@ version = "0.1.0"
 authors = ["Manuel Woelker <github@manuel.woelker.org>"]
 edition = "2018"
 
+[[bin]]
+bench = false
+path = "src/main.rs"
+name = "tool-tool-shim"
+
 [dependencies]
 anyhow = "1.0.31"
 

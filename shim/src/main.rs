@@ -4,7 +4,19 @@ use std::process::{exit, Command};
 
 pub type Result<T> = anyhow::Result<T>;
 
+// TODO: use PATHEXT env var?
+#[cfg(target_os = "windows")]
+const EXECUTABLE_EXTENSIONS: &[&str] = &[".exe", ".cmd", ".bat", ""];
+
+#[cfg(target_os = "windows")]
 const TOOL_TOOL_NAME: &str = "tt.exe";
+
+#[cfg(target_os = "linux")]
+const EXECUTABLE_EXTENSIONS: &[&str] = &[""];
+
+#[cfg(target_os = "linux")]
+const TOOL_TOOL_NAME: &str = "tt";
+
 
 fn main() -> Result<()> {
     let mut args = std::env::args();
@@ -13,15 +25,16 @@ fn main() -> Result<()> {
     let binary = args.next().with_context(|| format!("Could not determine first argument"))?;
     let args: Vec<_> = args.collect();
     let mut binary_path = PathBuf::from(&binary);
+    let canonical_binary_path = binary_path.canonicalize().with_context(|| format!("Could not canonicalize binary: {:?}", binary_path))?;
     binary_path.set_extension("");
     let tool_name = binary_path.file_name().with_context(|| format!("Could not determine tool name from path {:?}", binary_path))?;
     dbg!(&tool_name);
 
     // Find tool tool binary
     let directory = std::env::current_dir().with_context(|| format!("Could not determine current directory"))?;
-    let directories = parent_directories(&directory);
-    for directory in directories {
+    for directory in parent_directories(&directory) {
         let tool_path = directory.join(TOOL_TOOL_NAME);
+        dbg!(&tool_path);
         if tool_path.exists() {
             let mut command = Command::new(tool_path);
             command.arg("--from-shim");
@@ -33,40 +46,52 @@ fn main() -> Result<()> {
                 .with_context(|| format!("Unable to run invocation {:?}", command))?;
             let exitcode = status.code().unwrap_or(0);
             if exitcode == 404 {
-                println!("Tool {:?} not found, continue from the top", tool_name);
+                println!("Tool {:?} not found, continue looking", tool_name);
                 continue;
             }
             exit(exitcode);
         }
     }
-    println!("Tool {:?} not found as tool nor in PATH", tool_name);
-/*    let tool_path = loop {
+    for directory in path_directories()? {
+        for extension in EXECUTABLE_EXTENSIONS {
+            let tool_path = directory.join(format!("{}{}", tool_name.to_str().unwrap(), extension));
+            let canonical_tool_path = tool_path.canonicalize().context("Could not canonicalize path");
+            if let Ok(tool_path) = canonical_tool_path {
+                if tool_path == canonical_binary_path {
+                    // Prevent calling ourselves, which would lead to infinite recursion
+                    continue;
+                }
+            }
 
-        if let Some(parent) = directory.parent() {
-            directory = parent.to_path_buf();
-        } else {
-            // No tool tool found on path try using PATH
-            let env_path = std::env::var("PATH").context("Unable to read PATH environment variable")?;
-            dbg!(env_path);
-            println!("Tool {:?} not found in PATH", tool_name);
-            exit(127)
+            if tool_path.exists() {
+                let mut command = Command::new(tool_path);
+                command.args(&args);
+                println!("Executing {:?}", command);
+                let status = command
+                    .status()
+                    .with_context(|| format!("Unable to run invocation {:?}", command))?;
+                let exitcode = status.code().unwrap_or(0);
+                exit(exitcode);
+            }
         }
-    };*/
+    }
+    println!("Tool {:?} not found as tool nor in PATH", tool_name);
     Ok(())
 }
 
-fn parent_directories(start_directory: &Path) -> impl Iterator<Item = PathBuf> {
+fn parent_directories(start_directory: &Path) -> impl Iterator<Item=PathBuf> {
     ParentPathIterator {
         next_path: Some(start_directory.to_path_buf()),
     }
 }
-/*
-fn path_directories() -> impl Iterator<Item = PathBuf> {
-    ParentPathIterator {
-        next_path: Some(start_directory.to_path_buf()),
-    }
+
+fn path_directories() -> Result<impl Iterator<Item=PathBuf>> {
+    let path_var = std::env::var("PATH").context("Could not extract PATH variable")?;
+    dbg!(&path_var);
+    let paths: Vec<_> = std::env::split_paths(&path_var).map(|path| PathBuf::from(path)).collect();
+    Ok(paths.into_iter())
 }
-*/
+
 
 struct ParentPathIterator {
     next_path: Option<PathBuf>,
