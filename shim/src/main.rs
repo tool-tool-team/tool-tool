@@ -23,12 +23,15 @@ fn main() -> Result<()> {
 
     // Determine tool name
     let binary = args.next().with_context(|| format!("Could not determine first argument"))?;
-    let args: Vec<_> = args.collect();
     let mut binary_path = PathBuf::from(&binary);
     let canonical_binary_path = binary_path.canonicalize().with_context(|| format!("Could not canonicalize binary: {:?}", binary_path))?;
     binary_path.set_extension("");
-    let tool_name = binary_path.file_name().with_context(|| format!("Could not determine tool name from path {:?}", binary_path))?;
+    let mut tool_name = binary_path.file_name().with_context(|| format!("Could not determine tool name from path {:?}", binary_path))?.to_str().with_context(|| format!("Could not convert tool name from path {:?}", binary_path))?.to_string();
+    if tool_name == "tt" {
+        tool_name = args.next().context("tt invoked, but no tool name was given")?;
+    }
     dbg!(&tool_name);
+    let args: Vec<_> = args.collect();
 
     // Find tool tool binary
     let directory = std::env::current_dir().with_context(|| format!("Could not determine current directory"))?;
@@ -38,7 +41,7 @@ fn main() -> Result<()> {
         if tool_path.exists() {
             let mut command = Command::new(tool_path);
             command.arg("--from-shim");
-            command.arg(tool_name);
+            command.arg(&tool_name);
             command.args(&args);
             println!("Executing {:?}", command);
             let status = command
@@ -54,7 +57,7 @@ fn main() -> Result<()> {
     }
     for directory in path_directories()? {
         for extension in EXECUTABLE_EXTENSIONS {
-            let tool_path = directory.join(format!("{}{}", tool_name.to_str().unwrap(), extension));
+            let tool_path = directory.join(format!("{}{}", tool_name, extension));
             let canonical_tool_path = tool_path.canonicalize().context("Could not canonicalize path");
             if let Ok(tool_path) = canonical_tool_path {
                 if tool_path == canonical_binary_path {
@@ -75,7 +78,7 @@ fn main() -> Result<()> {
             }
         }
     }
-    println!("Tool {:?} not found as tool nor in PATH", tool_name);
+    println!("Tool {} not found as tool nor in PATH", tool_name);
     Ok(())
 }
 

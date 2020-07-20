@@ -9,6 +9,12 @@ bench = false
 path = "src/main.rs"
 name = "tool-tool-shim"
 
+[[bin]]
+bench = false
+path = "src/main.rs"
+name = "tt"
+
+
 [dependencies]
 anyhow = "1.0.31"
 

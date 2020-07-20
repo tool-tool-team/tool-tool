@@ -25,10 +25,16 @@ pub fn parse_args(args: &mut dyn Iterator<Item = String>, verbose_env: bool) -> 
         loop {
             match command.as_str() {
                 "-v" => {
+                    if rest_args.is_empty() {
+                        anyhow::bail!("tt: No command given")
+                    }
                     verbose = true;
                     command = rest_args.remove(0);
                 }
                 "--from-shim" => {
+                    if rest_args.is_empty() {
+                        anyhow::bail!("tt: No command given")
+                    }
                     from_shim = true;
                     command = rest_args.remove(0);
                 }
