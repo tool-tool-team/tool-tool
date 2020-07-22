@@ -21,9 +21,7 @@ fn main() -> Result<()> {
     let mut args = std::env::args();
 
     // Determine tool name
-    let binary = args
-        .next()
-        .context("Could not determine first argument")?;
+    let binary = args.next().context("Could not determine first argument")?;
     let mut binary_path = PathBuf::from(&binary);
     let canonical_binary_path = binary_path
         .canonicalize()
@@ -43,8 +41,7 @@ fn main() -> Result<()> {
     let args: Vec<_> = args.collect();
 
     // Find tool tool binary
-    let directory = std::env::current_dir()
-        .context("Could not determine current directory")?;
+    let directory = std::env::current_dir().context("Could not determine current directory")?;
     for directory in parent_directories(&directory) {
         let tool_path = directory.join(TOOL_TOOL_NAME);
         if tool_path.exists() {
