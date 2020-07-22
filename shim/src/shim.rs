@@ -35,12 +35,11 @@ fn main() -> Result<()> {
         .to_str()
         .with_context(|| format!("Could not convert tool name from path {:?}", binary_path))?
         .to_string();
-    if tool_name == "tt" {
+    if tool_name == "tt" || tool_name == "tool-tool-shim" {
         tool_name = args
             .next()
             .context("tt invoked, but no tool name was given")?;
     }
-    dbg!(&tool_name);
     let args: Vec<_> = args.collect();
 
     // Find tool tool binary
@@ -48,19 +47,16 @@ fn main() -> Result<()> {
         .context("Could not determine current directory")?;
     for directory in parent_directories(&directory) {
         let tool_path = directory.join(TOOL_TOOL_NAME);
-        dbg!(&tool_path);
         if tool_path.exists() {
             let mut command = Command::new(tool_path);
             command.arg("--from-shim");
             command.arg(&tool_name);
             command.args(&args);
-            println!("Executing {:?}", command);
             let status = command
                 .status()
                 .with_context(|| format!("Unable to run invocation {:?}", command))?;
             let exitcode = status.code().unwrap_or(0);
             if exitcode == 404 {
-                println!("Tool {:?} not found, continue looking", tool_name);
                 continue;
             }
             exit(exitcode);
@@ -82,7 +78,6 @@ fn main() -> Result<()> {
             if tool_path.exists() {
                 let mut command = Command::new(tool_path);
                 command.args(&args);
-                println!("Executing {:?}", command);
                 let status = command
                     .status()
                     .with_context(|| format!("Unable to run invocation {:?}", command))?;
@@ -91,8 +86,8 @@ fn main() -> Result<()> {
             }
         }
     }
-    println!("Tool {} not found as tool nor in PATH", tool_name);
-    Ok(())
+    eprintln!("Tool {} not found as tool nor in PATH", tool_name);
+    exit(127);
 }
 
 fn parent_directories(start_directory: &Path) -> impl Iterator<Item = PathBuf> {
@@ -103,7 +98,6 @@ fn parent_directories(start_directory: &Path) -> impl Iterator<Item = PathBuf> {
 
 fn path_directories() -> Result<impl Iterator<Item = PathBuf>> {
     let path_var = std::env::var("PATH").context("Could not extract PATH variable")?;
-    dbg!(&path_var);
     let paths: Vec<_> = std::env::split_paths(&path_var)
         .map(PathBuf::from)
         .collect();

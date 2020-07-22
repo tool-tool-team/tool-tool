@@ -3,16 +3,16 @@ pub use anyhow::{bail, Result};
 macro_rules! verbose {
      ($($arg:tt)+) => ({
         if(crate::VERBOSE.load(std::sync::atomic::Ordering::Relaxed)) {
-            print!("🔧 ");
-            println!($($arg)+);
+            eprint!("🔧 ");
+            eprintln!($($arg)+);
         }
     });
 }
 
 macro_rules! report {
      ($($arg:tt)+) => ({
-        print!("🔧 ");
-        println!($($arg)+);
+        eprint!("🔧 ");
+        eprintln!($($arg)+);
     });
 }
 pub mod args;
