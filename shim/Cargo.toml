@@ -6,12 +6,12 @@ edition = "2018"
 
 [[bin]]
 bench = false
-path = "src/main.rs"
+path = "src/shim.rs"
 name = "tool-tool-shim"
 
 [[bin]]
 bench = false
-path = "src/main.rs"
+path = "src/shim.rs"
 name = "tt"
 
 
