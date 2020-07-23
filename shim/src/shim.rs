@@ -1,4 +1,5 @@
 use anyhow::Context;
+use std::env::current_dir;
 use std::path::{Path, PathBuf};
 use std::process::{exit, Command};
 
@@ -25,7 +26,8 @@ fn main() -> Result<()> {
     let mut binary_path = PathBuf::from(&binary);
     let canonical_binary_path = binary_path
         .canonicalize()
-        .with_context(|| format!("Could not canonicalize binary: {:?}", binary_path))?;
+        .or_else(|_| find_path(&binary_path))
+        .with_context(|| format!("Could not determine canonical binary path for '{}'", binary))?;
     binary_path.set_extension("");
     let mut tool_name = binary_path
         .file_name()
@@ -85,6 +87,28 @@ fn main() -> Result<()> {
     }
     eprintln!("Tool {} not found as tool nor in PATH", tool_name);
     exit(127);
+}
+
+fn find_path(path: &Path) -> Result<PathBuf> {
+    for directory in path_directories()?.chain(std::iter::once(
+        current_dir().context("Could not determine current dir")?,
+    )) {
+        for extension in EXECUTABLE_EXTENSIONS {
+            let tool_path = directory.join(format!(
+                "{}{}",
+                path.with_extension("")
+                    .to_str()
+                    .context("Could not transform path")?,
+                extension
+            ));
+            if tool_path.exists() {
+                return Ok(tool_path
+                    .canonicalize()
+                    .context("Could not canonicalize path in find_path()")?);
+            }
+        }
+    }
+    Err(anyhow::anyhow!("Could not find '{:?}' in path", path))
 }
 
 fn parent_directories(start_directory: &Path) -> impl Iterator<Item = PathBuf> {
