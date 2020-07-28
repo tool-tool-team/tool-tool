@@ -39,7 +39,7 @@ pub const HOMEPAGE: &str = env!("CARGO_PKG_HOMEPAGE");
 
 pub static VERBOSE: AtomicBool = AtomicBool::new(false);
 
-const EXIT_CODE_NOT_FOUND: i32 = 404;
+const EXIT_CODE_NOT_FOUND: i32 = 125;
 
 fn main() -> Result<()> {
     let verbose_env = std::env::var("TOOL_TOOL_VERBOSE").is_ok();

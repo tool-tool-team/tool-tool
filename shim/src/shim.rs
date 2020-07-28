@@ -5,6 +5,8 @@ use std::process::{exit, Command};
 
 pub type Result<T> = anyhow::Result<T>;
 
+const EXIT_CODE_NOT_FOUND: i32 = 125;
+
 // TODO: use PATHEXT env var?
 #[cfg(target_os = "windows")]
 const EXECUTABLE_EXTENSIONS: &[&str] = &[".exe", ".cmd", ".bat", ""];
@@ -55,7 +57,7 @@ fn main() -> Result<()> {
                 .status()
                 .with_context(|| format!("Unable to run invocation {:?}", command))?;
             let exitcode = status.code().unwrap_or(0);
-            if exitcode == 404 {
+            if exitcode == EXIT_CODE_NOT_FOUND {
                 continue;
             }
             exit(exitcode);
