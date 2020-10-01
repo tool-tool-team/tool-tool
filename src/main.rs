@@ -48,15 +48,17 @@ fn main() -> Result<()> {
     match args {
         Args::Help => {
             let configuration = get_config(&binary).unwrap_or_default();
-            print_help(&configuration, &mut std::io::stdout().lock())?
+            print_help(&configuration, &mut std::io::stdout().lock())?;
+
+        }
+        Args::Download => {
+            VERBOSE.store(true, Ordering::Relaxed);
+            init_cache(&binary)?;
+            report!("Download complete!");
         }
         Args::Invocation(mut invocation) => {
             VERBOSE.store(invocation.verbose, Ordering::Relaxed);
-            let configuration = get_config(&binary).with_context(|| format!("Unable to load configuration, please ensure that a file called {} exists, either in the current directory or an ancestor", CONFIG_FILENAME))?;
-            verbose!("{} {}", NAME, VERSION);
-            let mut cache = Cache::create(configuration)?;
-            cache.init().context("Could not initialize cache")?;
-            verbose!("Cache initialized");
+            let cache = init_cache(&binary)?;
             let command_result = cache.get_command_line(&invocation.command_name);
             if invocation.from_shim {
                 if let Err(err) = &command_result {
@@ -81,4 +83,13 @@ fn main() -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn init_cache(binary_name: &str) -> Result<Cache> {
+    verbose!("{} {}", NAME, VERSION);
+    let configuration = get_config(&binary_name).with_context(|| format!("Unable to load configuration, please ensure that a file called {} exists, either in the current directory or an ancestor", CONFIG_FILENAME))?;
+    let mut cache = Cache::create(configuration)?;
+    cache.init().context("Could not initialize cache")?;
+    verbose!("Cache initialized");
+    Ok(cache)
 }

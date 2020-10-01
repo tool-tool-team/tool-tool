@@ -3,6 +3,7 @@ use crate::Result;
 #[derive(Debug, PartialEq, Eq)]
 pub enum Args {
     Help,
+    Download,
     Invocation(Invocation),
 }
 
@@ -20,6 +21,9 @@ pub fn parse_args(args: &mut dyn Iterator<Item = String>, verbose_env: bool) -> 
         let mut from_shim = false;
         if &command == "--help" {
             return Ok(Args::Help);
+        }
+        if &command == "--download" {
+            return Ok(Args::Download);
         }
         let mut rest_args: Vec<_> = args.collect();
         loop {
@@ -71,6 +75,11 @@ mod tests {
     #[test]
     fn parse_help() {
         assert_eq!(test_args(&["--help"], false), Args::Help);
+    }
+
+    #[test]
+    fn parse_download() {
+        assert_eq!(test_args(&["--download"], false), Args::Download);
     }
 
     #[test]
