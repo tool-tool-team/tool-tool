@@ -30,6 +30,9 @@ pub fn print_help(configuration: &Configuration, out: &mut dyn Write) -> Result<
     } else {
         print_commands(out, &configuration)?;
     }
+    writeln!(out)?;
+    writeln!(out, "Usage: tt --download")?;
+    writeln!(out, "  Download configured tools for later use")?;
     Ok(())
 }
 
