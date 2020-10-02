@@ -6,7 +6,11 @@ pub struct Windows;
 #[cfg(target_os = "windows")]
 impl crate::platform::PlatformFunctions for Windows {
     fn rename_atomically(src: &std::path::Path, dst: &std::path::Path) -> crate::Result<()> {
-        Ok(atomicwrites::move_atomic(src, dst)?)
+        if atomicwrites::move_atomic(src, dst).is_err() {
+            report!("WARNING: Atomic move failed, falling back to plain move");
+            std::fs::rename(src, dst)?;
+        }
+        Ok(())
     }
 }
 
