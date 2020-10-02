@@ -74,7 +74,7 @@ impl Cache {
                 );
                 continue;
             }
-            std::fs::create_dir_all(&tmp_dir)?;
+            std::fs::create_dir_all(&tmp_dir).with_context(|| format!("Unable to create tmp dir {:?}", tmp_dir))?;
             std::fs::create_dir_all(tool_dir.parent().expect("Parent should exist"))?;
             let url = self
                 .platform
@@ -94,15 +94,15 @@ impl Cache {
                 .with_context(|| format!("Unable to download {} to {:?}", url, file_path))?;
             let extract_dir = tmp_dir.join(&tool.name);
             let extension = file_path.extension();
-            std::fs::create_dir_all(&extract_dir)?;
+            std::fs::create_dir_all(&extract_dir).with_context(|| format!("Unable to extract directory {:?}", extract_dir))?;
             let zip_extension = Some(OsStr::new("zip"));
             let gz_extension = Some(OsStr::new("gz"));
             let tgz_extension = Some(OsStr::new("tgz"));
             if extension == zip_extension {
-                let file = File::open(file_path)?;
-                let mut archive = zip::ZipArchive::new(file).unwrap();
+                let file = File::open(&file_path)?;
+                let mut archive = zip::ZipArchive::new(file).with_context(|| format!("Unable to open zip file {:?}", file_path))?;
                 for i in 0..archive.len() {
-                    let mut file = archive.by_index(i).unwrap();
+                    let mut file = archive.by_index(i).with_context(|| format!("Unable to open zip entry {:?}", i))?;
                     let file_name: PathBuf = file
                         .sanitized_name()
                         .components()
@@ -115,17 +115,17 @@ impl Cache {
                     } else {
                         if let Some(p) = outpath.parent() {
                             if !p.exists() {
-                                std::fs::create_dir_all(&p).unwrap();
+                                std::fs::create_dir_all(&p).with_context(|| format!("Unable to zip path {:?}", p))?;
                             }
                         }
                         let mut outfile = std::fs::File::create(&outpath).with_context(|| {
                             format!("Could not create output file '{:?}'", outpath)
                         })?;
-                        std::io::copy(&mut file, &mut outfile).unwrap();
+                        std::io::copy(&mut file, &mut outfile).with_context(|| format!("Unable to extract file {:?} to path {:?}", outpath, outfile))?;
                     }
                 }
             } else if extension == gz_extension || extension == tgz_extension {
-                let file = File::open(file_path)?;
+                let file = File::open(&file_path)?;
                 let tar = GzDecoder::new(file);
                 let mut archive = Archive::new(tar);
                 for entry in archive.entries()? {
@@ -146,7 +146,7 @@ impl Cache {
                 std::fs::rename(from, &to)
                     .with_context(|| format!("Unable to rename from {:?} to {:?}", from, to))?;
             }
-            PlatformFns::rename_atomically(&extract_dir, &tool_dir)?;
+            PlatformFns::rename_atomically(&extract_dir, &tool_dir).with_context(|| format!("Unable to atomically rename from {:?} to {:?}", extract_dir, tool_dir))?;
         }
 
         if tmp_dir.exists() {
