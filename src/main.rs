@@ -49,12 +49,32 @@ fn main() -> Result<()> {
         Args::Help => {
             let configuration = get_config(&binary).unwrap_or_default();
             print_help(&configuration, &mut std::io::stdout().lock())?;
-
         }
         Args::Download => {
             VERBOSE.store(true, Ordering::Relaxed);
             init_cache(&binary)?;
             report!("Download complete!");
+        }
+        Args::GetBinaryPath { command_name } => {
+            VERBOSE.store(false, Ordering::Relaxed);
+            let cache = create_cache(&binary)?;
+            let command_line = cache.get_command_line(&command_name)?;
+            println!(
+                "{}",
+                make_absolute(&std::path::Path::new(&command_line.binary))?
+            );
+        }
+        Args::GetToolPath { tool_name } => {
+            VERBOSE.store(false, Ordering::Relaxed);
+            let cache = create_cache(&binary)?;
+            let tool_configuration = cache
+                .configuration
+                .tools
+                .iter()
+                .find(|tool| tool.name == tool_name)
+                .with_context(|| format!("Tool '{}' not found", tool_name))?;
+            let tool_dir = cache.get_tool_dir(tool_configuration);
+            println!("{}", make_absolute(tool_dir.as_path())?);
         }
         Args::Invocation(mut invocation) => {
             VERBOSE.store(invocation.verbose, Ordering::Relaxed);
@@ -87,9 +107,20 @@ fn main() -> Result<()> {
 
 fn init_cache(binary_name: &str) -> Result<Cache> {
     verbose!("{} {}", NAME, VERSION);
+    let cache = create_cache(binary_name)?;
+    verbose!("Cache initialized");
+    Ok(cache)
+}
+
+fn create_cache(binary_name: &str) -> Result<Cache> {
     let configuration = get_config(&binary_name).with_context(|| format!("Unable to load configuration, please ensure that a file called {} exists, either in the current directory or an ancestor", CONFIG_FILENAME))?;
     let mut cache = Cache::create(configuration)?;
     cache.init().context("Could not initialize cache")?;
-    verbose!("Cache initialized");
     Ok(cache)
+}
+
+fn make_absolute(path: &std::path::Path) -> Result<String> {
+    Ok(dunce::canonicalize(path)?
+        .to_string_lossy()
+        .replace("\\", "/"))
 }

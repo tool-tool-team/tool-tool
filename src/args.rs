@@ -1,10 +1,13 @@
 use crate::Result;
+use anyhow::Context;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Args {
     Help,
     Download,
     Invocation(Invocation),
+    GetBinaryPath { command_name: String },
+    GetToolPath { tool_name: String },
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -24,6 +27,20 @@ pub fn parse_args(args: &mut dyn Iterator<Item = String>, verbose_env: bool) -> 
         }
         if &command == "--download" {
             return Ok(Args::Download);
+        }
+        if &command == "--getBinaryPath" {
+            return Ok(Args::GetBinaryPath {
+                command_name: args
+                    .next()
+                    .with_context(|| "Expected a command, but none was found")?,
+            });
+        }
+        if &command == "--getToolPath" {
+            return Ok(Args::GetToolPath {
+                tool_name: args
+                    .next()
+                    .with_context(|| "Expected a tool name, but none was found")?,
+            });
         }
         let mut rest_args: Vec<_> = args.collect();
         loop {
@@ -80,6 +97,26 @@ mod tests {
     #[test]
     fn parse_download() {
         assert_eq!(test_args(&["--download"], false), Args::Download);
+    }
+
+    #[test]
+    fn parse_get_binary_path() {
+        assert_eq!(
+            test_args(&["--getBinaryPath", "foo"], false),
+            Args::GetBinaryPath {
+                command_name: "foo".to_string()
+            }
+        );
+    }
+
+    #[test]
+    fn parse_get_tool_path() {
+        assert_eq!(
+            test_args(&["--getToolPath", "bar"], false),
+            Args::GetToolPath {
+                tool_name: "bar".to_string()
+            }
+        );
     }
 
     #[test]

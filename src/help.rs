@@ -24,15 +24,21 @@ pub fn print_help(configuration: &Configuration, out: &mut dyn Write) -> Result<
     writeln!(out, "Flags:")?;
     writeln!(out, "  -v     Verbose debug output")?;
     writeln!(out)?;
+    writeln!(out, "Usage: tt --download")?;
+    writeln!(out, "  Download configured tools for later use")?;
+    writeln!(out)?;
+    writeln!(out, "Usage: tt --getBinaryPath <command>")?;
+    writeln!(out, "  Writes the absolute path to the binary to stdout. This can be used for integration with other tooling.")?;
+    writeln!(out)?;
+    writeln!(out, "Usage: tt --getToolPath <tool>")?;
+    writeln!(out, "  Writes the absolute path to the tool directory to stdout. This can be used for integration with other tooling.")?;
+    writeln!(out)?;
     if configuration.configuration_files.is_empty() {
         writeln!(out, "No tool-tool file named {} found in current directory or ancestors, please create one and configure your tools.", CONFIG_FILENAME)?;
         writeln!(out, "Refer to {} for further information", HOMEPAGE)?;
     } else {
         print_commands(out, &configuration)?;
     }
-    writeln!(out)?;
-    writeln!(out, "Usage: tt --download")?;
-    writeln!(out, "  Download configured tools for later use")?;
     Ok(())
 }
 
