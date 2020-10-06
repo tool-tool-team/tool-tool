@@ -1,3 +1,6 @@
 /target
+/static
+/rendered_templates
+/binserve.json
 .idea
 .tool-tool

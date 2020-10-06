@@ -150,7 +150,19 @@ impl Cache {
             } else {
                 // save as tool name
                 let from = file_path.as_os_str();
-                let to = extract_dir.join(&tool.name);
+                #[cfg(target_family = "unix")]
+                {
+                    let mut perms = std::fs::metadata("foo.txt")?.permissions();
+                    perms.set_mode(0o755);
+                    std::fs::set_permissions(from, perms);
+                }
+                let extension = file_path.extension().and_then(|x| x.to_str());
+                let mut filename = tool.name.to_string();
+                if let Some(extension) = extension {
+                    filename += ".";
+                    filename += extension;
+                }
+                let to = extract_dir.join(filename);
                 std::fs::rename(from, &to)
                     .with_context(|| format!("Unable to rename from {:?} to {:?}", from, to))?;
             }
@@ -395,6 +407,40 @@ mod tests {
             .join("bar");
         assert!(path.exists(), "directory should exist");
         assert!(path.is_dir(), "directory should be a directory");
+    }
+
+    #[test]
+    fn download_exe() {
+        let path = "/cache/tool.exe";
+
+        let _m = mock("GET", path)
+            .with_status(200)
+            .with_body(b"Hello, World!")
+            .create();
+        let (mut configuration, temp_dir) = create_configuration();
+        configuration.tools.push(ToolConfiguration {
+            name: "foo".to_string(),
+            version: "1.2.3".to_string(),
+            download: DownloadUrls {
+                default: Some(mockito::server_url() + path),
+                linux: None,
+                windows: None,
+            },
+            commands: HashMap::new(),
+            env: HashMap::new(),
+            strip_directories: 1,
+        });
+        let mut cache = Cache::create(configuration).unwrap();
+        cache.platform = Box::new(crate::platform::Windows {});
+        cache.init().unwrap();
+        let path = temp_dir
+            .path()
+            .join("tools")
+            .join("foo")
+            .join("1.2.3")
+            .join("foo.exe");
+        let content = read_to_string(path).expect("File foo.exe should exist");
+        assert_eq!(content, "Hello, World!");
     }
 
     fn verify_hello_world_txt(path: &str) -> TempDir {
