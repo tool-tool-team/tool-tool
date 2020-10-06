@@ -107,15 +107,15 @@ fn main() -> Result<()> {
 
 fn init_cache(binary_name: &str) -> Result<Cache> {
     verbose!("{} {}", NAME, VERSION);
-    let cache = create_cache(binary_name)?;
+    let mut cache = create_cache(binary_name)?;
+    cache.init().context("Could not initialize cache")?;
     verbose!("Cache initialized");
     Ok(cache)
 }
 
 fn create_cache(binary_name: &str) -> Result<Cache> {
     let configuration = get_config(&binary_name).with_context(|| format!("Unable to load configuration, please ensure that a file called {} exists, either in the current directory or an ancestor", CONFIG_FILENAME))?;
-    let mut cache = Cache::create(configuration)?;
-    cache.init().context("Could not initialize cache")?;
+    let cache = Cache::create(configuration)?;
     Ok(cache)
 }
 
