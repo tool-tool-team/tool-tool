@@ -14,6 +14,9 @@ use std::ops::Deref;
 use std::path::PathBuf;
 use tar::Archive;
 
+#[cfg(target_family = "unix")]
+use std::os::unix::fs::PermissionsExt;
+
 pub struct Cache {
     pub configuration: Configuration,
     tools_dir: PathBuf,
@@ -151,16 +154,18 @@ impl Cache {
                 // save as tool name
                 let from = file_path.as_os_str();
                 #[cfg(target_family = "unix")]
-                {
-                    let mut perms = std::fs::metadata("foo.txt")?.permissions();
-                    perms.set_mode(0o755);
-                    std::fs::set_permissions(from, perms);
-                }
+                    {
+                        let mut perms = std::fs::metadata(&file_path)?.permissions();
+                        perms.set_mode(0o755);
+                        std::fs::set_permissions(from, perms)?;
+                    }
                 let extension = file_path.extension().and_then(|x| x.to_str());
                 let mut filename = tool.name.to_string();
                 if let Some(extension) = extension {
-                    filename += ".";
-                    filename += extension;
+                    if extension == "exe" {
+                        filename += ".";
+                        filename += extension;
+                    }
                 }
                 let to = extract_dir.join(filename);
                 std::fs::rename(from, &to)
