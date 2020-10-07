@@ -23,6 +23,7 @@ pub mod help;
 pub mod invocation;
 pub mod platform;
 pub mod template;
+pub mod util;
 
 use crate::args::{parse_args, Args};
 use crate::cache::{Cache, CommandNotFoundError};

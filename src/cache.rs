@@ -14,6 +14,7 @@ use std::ops::Deref;
 use std::path::PathBuf;
 use tar::Archive;
 
+use crate::util::retry;
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::PermissionsExt;
 
@@ -154,11 +155,11 @@ impl Cache {
                 // save as tool name
                 let from = file_path.as_os_str();
                 #[cfg(target_family = "unix")]
-                    {
-                        let mut perms = std::fs::metadata(&file_path)?.permissions();
-                        perms.set_mode(0o755);
-                        std::fs::set_permissions(from, perms)?;
-                    }
+                {
+                    let mut perms = std::fs::metadata(&file_path)?.permissions();
+                    perms.set_mode(0o755);
+                    std::fs::set_permissions(from, perms)?;
+                }
                 let extension = file_path.extension().and_then(|x| x.to_str());
                 let mut filename = tool.name.to_string();
                 if let Some(extension) = extension {
@@ -168,7 +169,7 @@ impl Cache {
                     }
                 }
                 let to = extract_dir.join(filename);
-                std::fs::rename(from, &to)
+                retry(||std::fs::rename(from, &to))
                     .with_context(|| format!("Unable to rename from {:?} to {:?}", from, to))?;
             }
             PlatformFns::rename_atomically(&extract_dir, &tool_dir).with_context(|| {
@@ -180,7 +181,7 @@ impl Cache {
         }
 
         if tmp_dir.exists() {
-            std::fs::remove_dir_all(&tmp_dir)
+            retry(|| std::fs::remove_dir_all(&tmp_dir))
                 .with_context(|| format!("Could not remove temp dir {:?}", tmp_dir))?;
         }
         Ok(())

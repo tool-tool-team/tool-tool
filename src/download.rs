@@ -1,8 +1,9 @@
 use crate::Result;
-use anyhow::bail;
+use anyhow::{bail, Context};
 use http_req::response::Response;
 use std::fs::File;
 use std::path::Path;
+use crate::util::retry;
 
 const MAX_REDIRECTS: i32 = 10;
 
@@ -21,7 +22,7 @@ pub fn download(url: &str, path: &Path) -> Result<()> {
                 .expect("No location in HTTP redirect")
                 .clone();
             verbose!("Download redirected to {}", download_url);
-            std::fs::remove_file(path)?;
+            retry(||std::fs::remove_file(&path)).with_context(|| format!("Unable to remove temp file at {:?}", path))?;
             continue;
         }
         let code: u16 = res.status_code().into();
