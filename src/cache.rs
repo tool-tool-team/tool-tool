@@ -85,7 +85,11 @@ impl Cache {
                 .platform
                 .get_download_url(tool)
                 .with_context(|| format!("No download url configured for {}", tool.name))?;
-            let file_name = url.rsplitn(2, '/').next().unwrap();
+            let extension = url;
+            let extension = extension.splitn(2, '?').next().unwrap();
+            let extension = extension.rsplitn(2, '/').next().unwrap();
+            let extension = extension.rsplitn(2, '.').next().unwrap();
+            let file_name = format!("{}.{}", tool.name, extension);
             report!(
                 "Downloading <{} {}> ({}) from <{}>",
                 tool.name,
@@ -137,7 +141,7 @@ impl Cache {
                         #[cfg(target_family = "unix")]
                         {
                             // Set linux file permission to make files executable
-                            if let Some(mode) =file.unix_mode() {
+                            if let Some(mode) = file.unix_mode() {
                                 let mut perms = std::fs::metadata(&outpath)?.permissions();
                                 perms.set_mode(mode);
                                 std::fs::set_permissions(outpath, perms)?;
@@ -178,7 +182,7 @@ impl Cache {
                     }
                 }
                 let to = extract_dir.join(filename);
-                retry(||std::fs::rename(from, &to))
+                retry(|| std::fs::rename(from, &to))
                     .with_context(|| format!("Unable to rename from {:?} to {:?}", from, to))?;
             }
             PlatformFns::rename_atomically(&extract_dir, &tool_dir).with_context(|| {
@@ -377,6 +381,38 @@ mod tests {
                 env: env.clone(),
             }
         );
+    }
+
+    #[test]
+    fn download_with_query_params_in_url() {
+        let path = "/cache/toolq";
+        let _m = mock("GET", (path.to_string() + "?foo=bar/baz?xyz").as_str())
+            .with_status(200)
+            .with_body("world")
+            .create();
+        let (mut configuration, temp_dir) = create_configuration();
+        configuration.tools.push(ToolConfiguration {
+            name: "foo".to_string(),
+            version: "1.2.3".to_string(),
+            download: DownloadUrls {
+                default: Some(mockito::server_url() + path + "?foo=bar/baz?xyz"),
+                linux: None,
+                windows: None,
+            },
+            commands: Default::default(),
+            env: Default::default(),
+            strip_directories: 0,
+        });
+        let mut cache = Cache::create(configuration).unwrap();
+        cache.init().unwrap();
+        let path = temp_dir
+            .path()
+            .join("tools")
+            .join("foo")
+            .join("1.2.3")
+            .join("foo");
+        let content = read_to_string(path).expect("File foo should exist");
+        assert_eq!(content, "world");
     }
 
     #[test]

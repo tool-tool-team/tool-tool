@@ -142,3 +142,10 @@ tools:
     download:
       windows: https://github.com/mufeedvh/binserve/releases/download/v${version}/binserve-v${version}-x86_64-pc-windows-gnu.exe
       linux: https://github.com/mufeedvh/binserve/releases/download/v${version}/binserve-v${version}-x86_64-unknown-linux-gnu
+
+  - name: chromedriver
+    version: 86.0.4240.22
+    strip_directories: 0
+    download:
+      windows: https://chromedriver.storage.googleapis.com/${version}/chromedriver_win32.zip
+      linux: https://chromedriver.storage.googleapis.com/${version}/chromedriver_linux64.zip
