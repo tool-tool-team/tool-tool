@@ -134,6 +134,15 @@ impl Cache {
                         std::io::copy(&mut file, &mut outfile).with_context(|| {
                             format!("Unable to extract file {:?} to path {:?}", outpath, outfile)
                         })?;
+                        #[cfg(target_family = "unix")]
+                        {
+                            // Set linux file permission to make files executable
+                            if let Some(mode) =file.unix_mode() {
+                                let mut perms = std::fs::metadata(&outpath)?.permissions();
+                                perms.set_mode(mode);
+                                std::fs::set_permissions(outpath, perms)?;
+                            }
+                        }
                     }
                 }
             } else if extension == gz_extension || extension == tgz_extension {

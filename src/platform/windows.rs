@@ -1,5 +1,7 @@
 use crate::config::ToolConfiguration;
 use crate::platform::Platform;
+
+#[cfg(target_os = "windows")]
 use crate::util::retry;
 
 pub struct Windows;
