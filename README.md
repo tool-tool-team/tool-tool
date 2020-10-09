@@ -3,7 +3,7 @@
 tool-tool - a light-weight meta-tool to version and install tool dependencies for your software projects
 
 [![Crates.io](https://img.shields.io/crates/v/tool-tool.svg)](https://crates.io/crates/tool-tool)
-[![pipeline status](https://gitlab.com/manuelwoelker/tool-tool/badges/master/pipeline.svg)](https://gitlab.com/manuelwoelker/tool-tool/-/commits/master) 
+[![Actions Status](https://github.com/tool-tool-team/tool-tool/workflows/Continuous%20integration/badge.svg)](https://github.com/tool-tool-team/tool-tool/actions?query=workflow%3A%22Continuous+integration%22)
 [![coverage report](https://gitlab.com/manuelwoelker/tool-tool/badges/master/coverage.svg)](https://gitlab.com/manuelwoelker/tool-tool/-/commits/master)
 
 **WARNING**: Work in progress - comments, contributions and feedback welcome
