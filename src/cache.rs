@@ -221,15 +221,14 @@ impl Cache {
         let tool_dir = self.get_tool_dir(tool_configuration);
         let replace_fn = |name: &str| match name {
             "dir" => Ok(tool_dir.to_string_lossy().to_string()),
+            "version" => Ok(tool_configuration.version.to_string()),
             name => {
-                if name.starts_with("cmd:") {
-                    let command_name = &name[4..];
+                if let Some(command_name) = name.strip_prefix("cmd:") {
                     let command_line = self.get_command_line(command_name).with_context(|| {
                         format!("Could not find tool command '{}'", command_name)
                     })?;
                     Ok(command_line.binary)
-                } else if name.starts_with("dir:") {
-                    let tool_name = &name[4..];
+                } else if let Some(tool_name) = name.strip_prefix("dir:") {
                     let tool = self
                         .configuration
                         .tools
@@ -240,15 +239,15 @@ impl Cache {
                         })?;
                     let tool_dir = self.get_tool_dir(tool);
                     Ok(tool_dir.to_string_lossy().to_string())
-                } else if name.starts_with("linux:") {
+                } else if let Some(rest) = name.strip_prefix("linux:") {
                     if self.platform.get_name() == "linux" {
-                        Ok(name[6..].to_string())
+                        Ok(rest.to_string())
                     } else {
                         Ok("".to_string())
                     }
-                } else if name.starts_with("windows:") {
+                } else if let Some(rest) = name.strip_prefix("windows:") {
                     if self.platform.get_name() == "windows" {
-                        Ok(name[8..].to_string())
+                        Ok(rest.to_string())
                     } else {
                         Ok("".to_string())
                     }
@@ -322,7 +321,7 @@ mod tests {
         let mut commands = HashMap::new();
         commands.insert(
             "foo".to_string(),
-            "${dir}/foo bar ${linux:LLL}${windows:WWW}".to_string(),
+            "${dir}/foo bar ${linux:LLL}${windows:WWW} ${version}".to_string(),
         );
         commands.insert("reframe".to_string(), "${dir:foo} ${cmd:foo}".to_string());
         let _m = mock("GET", path)
@@ -360,7 +359,7 @@ mod tests {
             cache.get_command_line("foo").unwrap(),
             CommandLine {
                 binary: dir.clone() + "/foo",
-                arguments: vec!["bar".to_string(), "LLL".to_string()],
+                arguments: vec!["bar".to_string(), "LLL".to_string(), "1.2.3".to_string()],
                 env: env.clone(),
             }
         );
@@ -369,7 +368,7 @@ mod tests {
             cache.get_command_line("foo").unwrap(),
             CommandLine {
                 binary: dir.clone() + "/foo",
-                arguments: vec!["bar".to_string(), "WWW".to_string()],
+                arguments: vec!["bar".to_string(), "WWW".to_string(), "1.2.3".to_string()],
                 env: env.clone(),
             }
         );
