@@ -1,0 +1,35 @@
+---
+source: integration-tests/src/lib.rs
+expression: result
+---
+Exit status: exit code: 0
+STDOUT:
+🔧 tool-tool 0.1.0 🔧
+
+🔧 A light-weight meta-tool to version and install tool dependencies for your software projects
+
+🔧 Loaded configuration from .tool-tool.v1.yaml
+
+Usage: tt [-v] <command> <args...>
+  Run tool <command> with the provided arguments
+
+Flags:
+  -v     Verbose debug output
+
+Usage: tt --download
+  Download configured tools for later use
+
+Usage: tt --getBinaryPath <command>
+  Writes the absolute path to the binary to stdout. This can be used for integration with other tooling.
+
+Usage: tt --getToolPath <tool>
+  Writes the absolute path to the tool directory to stdout. This can be used for integration with other tooling.
+
+Available commands:
+
+   Command  Tool
+   bat      bat 0.16.0
+
+STDERR:
+
+

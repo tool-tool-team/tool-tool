@@ -1,0 +1,11 @@
+---
+source: integration-tests/src/lib.rs
+expression: result
+---
+Exit status: exit code: 0
+STDOUT:
+C:/projects/tool-tool/integration-tests/.test/coreutils/.tool-tool/v1/tools/coreutils/0.0.1.1
+
+STDERR:
+
+

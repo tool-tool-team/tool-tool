@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fmt;
 use std::fs::File;
+use std::io::Write;
 use std::ops::Deref;
 use std::path::PathBuf;
 use tar::Archive;
@@ -90,13 +91,8 @@ impl Cache {
             let extension = extension.rsplitn(2, '/').next().unwrap();
             let extension = extension.rsplitn(2, '.').next().unwrap();
             let file_name = format!("{}.{}", tool.name, extension);
-            report!(
-                "Downloading <{} {}> ({}) from <{}>",
-                tool.name,
-                tool.version,
-                file_name,
-                url
-            );
+            print!("🔧 ⏳ Downloading {} {}", tool.name, tool.version,);
+            std::io::stdout().flush()?;
             verbose!("Using tmp_dir {:?}", tmp_dir);
             let file_path = tmp_dir.join(file_name);
             download(url, &file_path)
@@ -191,12 +187,14 @@ impl Cache {
                     extract_dir, tool_dir
                 )
             })?;
+            println!("\r🔧 ✅ Downloading {} {}", tool.name, tool.version,);
         }
 
         if tmp_dir.exists() {
             retry(|| std::fs::remove_dir_all(&tmp_dir))
                 .with_context(|| format!("Could not remove temp dir {:?}", tmp_dir))?;
         }
+
         Ok(())
     }
 

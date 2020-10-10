@@ -1,0 +1,11 @@
+---
+source: integration-tests/src/lib.rs
+expression: result
+---
+Exit status: exit code: 0
+STDOUT:
+foo
+
+STDERR:
+
+

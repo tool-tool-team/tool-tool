@@ -1,0 +1,12 @@
+---
+source: integration-tests/src/lib.rs
+expression: result
+---
+Exit status: exit code: 0
+STDOUT:
+🔧 ⏳ Downloading bat 0.16.0🔧 ✅ Downloading bat 0.16.0
+bat 0.16.0
+
+STDERR:
+
+

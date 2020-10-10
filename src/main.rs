@@ -52,7 +52,7 @@ fn main() -> Result<()> {
             print_help(&configuration, &mut std::io::stdout().lock())?;
         }
         Args::Download => {
-            VERBOSE.store(true, Ordering::Relaxed);
+            VERBOSE.store(false, Ordering::Relaxed);
             init_cache(&binary)?;
             report!("Download complete!");
         }

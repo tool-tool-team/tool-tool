@@ -1,0 +1,11 @@
+tools:
+  - name: coreutils
+    version: 0.0.1.1
+    download:
+      linux: https://github.com/uutils/coreutils/releases/download/${version}/coreutils-${version}-x86_64-unknown-linux-musl.tar.gz
+      windows: https://github.com/uutils/coreutils/releases/download/${version}/coreutils-${version}-x86_64-pc-windows-msvc.zip
+    commands:
+      coreutils: coreutils
+      echo: coreutils echo
+      replace_version: coreutils echo ${version}
+      replace_dir: coreutils echo ${dir}
