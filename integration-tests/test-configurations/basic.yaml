@@ -1,0 +1,6 @@
+tools:
+  - name: bat
+    version: 0.16.0
+    download:
+      linux: https://github.com/sharkdp/bat/releases/download/v${version}/bat-v${version}-i686-unknown-linux-gnu.tar.gz
+      windows: https://github.com/sharkdp/bat/releases/download/v${version}/bat-v${version}-i686-pc-windows-msvc.zip

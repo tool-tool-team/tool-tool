@@ -1,0 +1,10 @@
+[package]
+name = "integration-tests"
+version = "0.1.0"
+authors = ["Manuel Woelker <github@manuel.woelker.org>"]
+edition = "2018"
+
+[dependencies]
+
+[dev-dependencies]
+insta = { version = "0.16.0", features = ["backtrace"] }

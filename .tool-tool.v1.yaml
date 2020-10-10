@@ -149,3 +149,9 @@ tools:
     download:
       windows: https://chromedriver.storage.googleapis.com/${version}/chromedriver_win32.zip
       linux: https://chromedriver.storage.googleapis.com/${version}/chromedriver_linux64.zip
+
+  - name: bat
+    version: 0.16.0
+    download:
+      linux: https://github.com/sharkdp/bat/releases/download/v${version}/bat-v${version}-i686-unknown-linux-gnu.tar.gz
+      windows: https://github.com/sharkdp/bat/releases/download/v${version}/bat-v${version}-i686-pc-windows-msvc.zip
