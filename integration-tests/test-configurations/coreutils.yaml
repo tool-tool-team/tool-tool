@@ -4,8 +4,15 @@ tools:
     download:
       linux: https://github.com/uutils/coreutils/releases/download/${version}/coreutils-${version}-x86_64-unknown-linux-musl.tar.gz
       windows: https://github.com/uutils/coreutils/releases/download/${version}/coreutils-${version}-x86_64-pc-windows-msvc.zip
+    env:
+      ENVIRONMENT: ITEST
     commands:
       coreutils: coreutils
       echo: coreutils echo
       replace_version: coreutils echo ${version}
       replace_dir: coreutils echo ${dir}
+      cmd: coreutils echo ${cmd:echo}
+      dir: coreutils echo ${dir:coreutils}
+      ver: coreutils echo ${version}
+      os: coreutils echo ${linux:os}${windows:os}
+      environ: coreutils printenv ENVIRONMENT

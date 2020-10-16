@@ -1,0 +1,15 @@
+---
+source: integration-tests/src/integration_tests.rs
+expression: result
+---
+Command: unconfigured_tool
+Exit status: exit code: 1
+STDOUT:
+
+STDERR:
+Error: Could not run command 'unconfigured_tool'
+
+Caused by:
+    Command 'unconfigured_tool' not found
+
+

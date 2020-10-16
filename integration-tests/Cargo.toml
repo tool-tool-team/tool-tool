@@ -8,3 +8,5 @@ edition = "2018"
 
 [dev-dependencies]
 insta = { version = "0.16.0", features = ["backtrace"] }
+dunce = "1.0.1"
+regex = "1"

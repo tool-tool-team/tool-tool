@@ -1,0 +1,5 @@
+tools:
+  - name: no_such_tool
+    version: 1.2.3
+    download:
+      default: https://example.com/no_such_tool

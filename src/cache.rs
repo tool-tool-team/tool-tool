@@ -2,7 +2,7 @@ use crate::config::{Configuration, ToolConfiguration};
 use crate::download::download;
 use crate::platform::{Platform, PlatformFns, PlatformFunctions};
 use crate::template::template;
-use crate::Result;
+use crate::{make_absolute, Result};
 use anyhow::bail;
 use anyhow::Context;
 use flate2::read::GzDecoder;
@@ -95,8 +95,13 @@ impl Cache {
             std::io::stdout().flush()?;
             verbose!("Using tmp_dir {:?}", tmp_dir);
             let file_path = tmp_dir.join(file_name);
-            download(url, &file_path)
-                .with_context(|| format!("Unable to download {} to {:?}", url, file_path))?;
+            download(url, &file_path).with_context(|| {
+                format!(
+                    "Unable to download {} to {:?}",
+                    url,
+                    make_absolute(file_path.as_path()).unwrap()
+                )
+            })?;
             let extract_dir = tmp_dir.join(&tool.name);
             let extension = file_path.extension();
             std::fs::create_dir_all(&extract_dir)
@@ -218,7 +223,7 @@ impl Cache {
             .unwrap_or(command);
         let tool_dir = self.get_tool_dir(tool_configuration);
         let replace_fn = |name: &str| match name {
-            "dir" => Ok(tool_dir.to_string_lossy().to_string()),
+            "dir" => make_absolute(tool_dir.as_path()),
             "version" => Ok(tool_configuration.version.to_string()),
             name => {
                 if let Some(command_name) = name.strip_prefix("cmd:") {
@@ -236,7 +241,7 @@ impl Cache {
                             format!("Could not find tool '{}' in tools list", tool_name)
                         })?;
                     let tool_dir = self.get_tool_dir(tool);
-                    Ok(tool_dir.to_string_lossy().to_string())
+                    make_absolute(tool_dir.as_path())
                 } else if let Some(rest) = name.strip_prefix("linux:") {
                     if self.platform.get_name() == "linux" {
                         Ok(rest.to_string())
@@ -343,14 +348,15 @@ mod tests {
         });
         let mut cache = Cache::create(configuration).unwrap();
         cache.init().unwrap();
-        let dir = temp_dir
-            .path()
-            .join("tools")
-            .join("foo")
-            .join("1.2.3")
-            .to_str()
-            .unwrap()
-            .to_string();
+        let dir = make_absolute(
+            temp_dir
+                .path()
+                .join("tools")
+                .join("foo")
+                .join("1.2.3")
+                .as_path(),
+        )
+        .unwrap();
         env.insert("XPATH".to_string(), dir.clone());
         cache.platform = Box::new(crate::platform::Linux {});
         assert_eq!(

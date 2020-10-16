@@ -1,0 +1,13 @@
+---
+source: integration-tests/src/integration_tests.rs
+expression: result
+---
+Command: coreutils no_such_command
+Exit status: exit code: 1
+STDOUT:
+no_such_command: function/utility not found
+
+STDERR:
+🔧 Command 'coreutils' terminated with exit code 1
+
+

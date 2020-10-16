@@ -1,7 +1,8 @@
 ---
-source: integration-tests/src/lib.rs
+source: integration-tests/src/integration_tests.rs
 expression: result
 ---
+Command: --help
 Exit status: exit code: 0
 STDOUT:
 🔧 tool-tool 0.1.0 🔧

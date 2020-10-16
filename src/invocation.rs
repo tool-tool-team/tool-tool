@@ -70,6 +70,8 @@ mod tests {
     fn assert_env_set() {
         let mut env: HashMap<String, String> = HashMap::new();
         env.insert("CODE".to_string(), "42".to_string());
+        // Make sure this runs with wsl2
+        env.insert("WSLENV".to_string(), "CODE".to_string());
         assert_invocation(
             CommandLine {
                 binary: "bash".to_string(),

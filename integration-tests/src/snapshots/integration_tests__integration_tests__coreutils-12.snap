@@ -1,0 +1,12 @@
+---
+source: integration-tests/src/integration_tests.rs
+expression: result
+---
+Command: coreutils false
+Exit status: exit code: 1
+STDOUT:
+
+STDERR:
+🔧 Command 'coreutils' terminated with exit code 1
+
+

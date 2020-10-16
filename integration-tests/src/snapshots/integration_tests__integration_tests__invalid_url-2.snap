@@ -1,0 +1,16 @@
+---
+source: integration-tests/src/integration_tests.rs
+expression: result
+---
+Command: --download
+Exit status: exit code: 1
+STDOUT:
+🔧 ⏳ Downloading no_such_tool 1.2.3
+STDERR:
+Error: Could not initialize cache
+
+Caused by:
+    0: Unable to download https://example.com/no_such_tool to "<DIRECTORY>/.tool-tool/v1/tools/<TMP>/no_such_tool.no_such_tool"
+    1: HTTP Error 404 downloading https://example.com/no_such_tool (Not Found)
+
+
