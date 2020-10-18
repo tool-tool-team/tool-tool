@@ -1,0 +1,12 @@
+---
+source: integration-tests/src/integration_tests.rs
+expression: result
+---
+Command: --getToolVersion bat
+Exit status: exit code: 0
+STDOUT:
+0.16.0
+
+STDERR:
+
+

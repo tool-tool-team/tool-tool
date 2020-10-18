@@ -8,6 +8,7 @@ pub enum Args {
     Invocation(Invocation),
     GetBinaryPath { command_name: String },
     GetToolPath { tool_name: String },
+    GetToolVersion { tool_name: String },
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -37,6 +38,13 @@ pub fn parse_args(args: &mut dyn Iterator<Item = String>, verbose_env: bool) -> 
         }
         if &command == "--getToolPath" {
             return Ok(Args::GetToolPath {
+                tool_name: args
+                    .next()
+                    .with_context(|| "Expected a tool name, but none was found")?,
+            });
+        }
+        if &command == "--getToolVersion" {
+            return Ok(Args::GetToolVersion {
                 tool_name: args
                     .next()
                     .with_context(|| "Expected a tool name, but none was found")?,
@@ -114,6 +122,16 @@ mod tests {
         assert_eq!(
             test_args(&["--getToolPath", "bar"], false),
             Args::GetToolPath {
+                tool_name: "bar".to_string()
+            }
+        );
+    }
+
+    #[test]
+    fn parse_get_tool_version() {
+        assert_eq!(
+            test_args(&["--getToolVersion", "bar"], false),
+            Args::GetToolVersion {
                 tool_name: "bar".to_string()
             }
         );

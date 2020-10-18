@@ -83,6 +83,7 @@ fn basic_operation() {
     let runner = prepare_test("basic");
     runner.verify_execution("bat --version");
     runner.verify_execution("--help");
+    runner.verify_execution("--getToolVersion bat");
 }
 
 #[test]

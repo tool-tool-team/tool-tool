@@ -77,6 +77,16 @@ fn main() -> Result<()> {
             let tool_dir = cache.get_tool_dir(tool_configuration);
             println!("{}", make_absolute(tool_dir.as_path())?);
         }
+        Args::GetToolVersion { tool_name } => {
+            VERBOSE.store(false, Ordering::Relaxed);
+            let configuration = get_config(&binary).with_context(|| format!("Unable to load configuration, please ensure that a file called {} exists, either in the current directory or an ancestor", CONFIG_FILENAME))?;
+            let tool_configuration = configuration
+                .tools
+                .iter()
+                .find(|tool| tool.name == tool_name)
+                .with_context(|| format!("Tool '{}' not found", tool_name))?;
+            println!("{}", tool_configuration.version);
+        }
         Args::Invocation(mut invocation) => {
             VERBOSE.store(invocation.verbose, Ordering::Relaxed);
             let cache = init_cache(&binary)?;
