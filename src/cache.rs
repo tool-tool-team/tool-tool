@@ -117,11 +117,8 @@ impl Cache {
                     let mut file = archive
                         .by_index(i)
                         .with_context(|| format!("Unable to open zip entry {:?}", i))?;
-                    let file_name: PathBuf = file
-                        .sanitized_name()
-                        .components()
-                        .skip(tool.strip_directories)
-                        .collect();
+                    let file_name: PathBuf =
+                        strip_filename(file.sanitized_name(), tool, file.is_dir())?;
                     let outpath = extract_dir.join(file_name);
 
                     if (&*file.name()).ends_with('/') {
@@ -156,14 +153,16 @@ impl Cache {
                 let mut archive = Archive::new(tar);
                 for entry in archive.entries()? {
                     let mut entry = entry?;
-                    let path: PathBuf = entry
-                        .path()?
-                        .components()
-                        .skip(tool.strip_directories)
-                        .collect();
+                    let path: PathBuf = strip_filename(
+                        entry.path()?.to_path_buf(),
+                        tool,
+                        entry.header().entry_type().is_dir(),
+                    )?;
                     let outpath = extract_dir.join(path);
                     std::fs::create_dir_all(outpath.parent().expect("parent"))?;
-                    entry.unpack(&outpath)?;
+                    entry
+                        .unpack(&outpath)
+                        .with_context(|| format!("Could not create output file '{:?}'", outpath))?;
                 }
             } else {
                 // save as tool name
@@ -291,6 +290,17 @@ impl Cache {
             env,
         })
     }
+}
+
+fn strip_filename(file_name: PathBuf, tool: &ToolConfiguration, is_dir: bool) -> Result<PathBuf> {
+    let new_file_name: PathBuf = file_name
+        .components()
+        .skip(tool.strip_directories)
+        .collect();
+    if !is_dir && new_file_name.components().next().is_none() {
+        bail!("File name {:?} was empty after stripping {} path components (in {:?}).\nHINT: Try setting strip_components: 0 in the tool configuration for {}", file_name, tool.strip_directories, tool.name, tool.name);
+    }
+    Ok(new_file_name)
 }
 
 #[cfg(test)]
@@ -498,6 +508,20 @@ mod tests {
     }
 
     fn verify_hello_world_txt(path: &str) -> TempDir {
+        let (temp_dir, mut cache) = create_cache(path);
+        cache.init().unwrap();
+        let path = temp_dir
+            .path()
+            .join("tools")
+            .join("foo")
+            .join("1.2.3")
+            .join("hello_world.txt");
+        let content = read_to_string(path).expect("File hello_world.txt should exist");
+        assert_eq!(content, "Hello, World!");
+        temp_dir
+    }
+
+    fn create_cache(path: &str) -> (TempDir, Cache) {
         let (mut configuration, temp_dir) = create_configuration();
         configuration.tools.push(ToolConfiguration {
             name: "foo".to_string(),
@@ -511,17 +535,8 @@ mod tests {
             env: HashMap::new(),
             strip_directories: 1,
         });
-        let mut cache = Cache::create(configuration).unwrap();
-        cache.init().unwrap();
-        let path = temp_dir
-            .path()
-            .join("tools")
-            .join("foo")
-            .join("1.2.3")
-            .join("hello_world.txt");
-        let content = read_to_string(path).expect("File hello_world.txt should exist");
-        assert_eq!(content, "Hello, World!");
-        temp_dir
+        let cache = Cache::create(configuration).unwrap();
+        (temp_dir, cache)
     }
 
     #[test]
@@ -540,5 +555,45 @@ mod tests {
 
         let _m = mock("GET", path).with_status(200).with_body(data).create();
         verify_hello_world_txt(path);
+    }
+
+    #[test]
+    fn download_tar_gz_with_too_many_directories_stripped() {
+        let path = "/cache/tool.tar.gz";
+
+        let encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+        let mut ar = tar::Builder::new(encoder);
+        let mut header = tar::Header::new_gnu();
+        header.set_path("hello_world.txt").unwrap();
+        let content = b"Hello, World!";
+        header.set_size(content.len() as u64);
+        header.set_cksum();
+        ar.append(&header, Cursor::new(content)).unwrap();
+        let data = ar.into_inner().unwrap().finish().unwrap();
+
+        let _m = mock("GET", path).with_status(200).with_body(data).create();
+
+        let (_temp_dir, mut cache) = create_cache(path);
+        let error = cache.init().expect_err("strip error expected");
+        assert_eq!(error.to_string(), "File name \"hello_world.txt\" was empty after stripping 1 path components (in \"foo\").\nHINT: Try setting strip_components: 0 in the tool configuration for foo")
+    }
+
+    #[test]
+    fn download_zip_with_too_many_directories_stripped() {
+        let path = "/cache/tool.zip";
+
+        let mut zip = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+        let options =
+            zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+        zip.start_file("hello_world.txt", options).unwrap();
+        zip.write(b"Hello, World!").unwrap();
+        zip.add_directory("foo/bar", options).unwrap();
+
+        let buf = zip.finish().unwrap().into_inner();
+
+        let _m = mock("GET", path).with_status(200).with_body(buf).create();
+        let (_temp_dir, mut cache) = create_cache(path);
+        let error = cache.init().expect_err("strip error expected");
+        assert_eq!(error.to_string(), "File name \"hello_world.txt\" was empty after stripping 1 path components (in \"foo\").\nHINT: Try setting strip_components: 0 in the tool configuration for foo")
     }
 }
