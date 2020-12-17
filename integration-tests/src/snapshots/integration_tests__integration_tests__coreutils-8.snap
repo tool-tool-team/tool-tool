@@ -5,7 +5,7 @@ expression: result
 Command: cmd
 Exit status: exit code: 0
 STDOUT:
-<DIRECTORY>/.tool-tool/v1/tools/coreutils/0.0.1.1/coreutils.exe
+<DIRECTORY>/.tool-tool/v1/tools/coreutils/0.0.1.1/coreutils
 
 STDERR:
 

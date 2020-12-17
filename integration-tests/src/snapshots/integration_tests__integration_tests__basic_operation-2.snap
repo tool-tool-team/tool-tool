@@ -9,7 +9,7 @@ STDOUT:
 
 🔧 A light-weight meta-tool to version and install tool dependencies for your software projects
 
-🔧 Loaded configuration from .tool-tool.v1.yaml
+🔧 Loaded configuration from ./.tool-tool.v1.yaml
 
 Usage: tt [-v] <command> <args...>
   Run tool <command> with the provided arguments
