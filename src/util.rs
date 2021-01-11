@@ -2,11 +2,24 @@ use crate::Result;
 use anyhow::Context;
 use std::time::Duration;
 
+
+// NOTE: under windows, file operations often fail spuriously, most likely due to virus scanners
+// keeping files open
+// This retry schedule should hopefully handle most situations
 const RETRY_DURATIONS: &[Duration] = &[
     Duration::from_millis(0),
     Duration::from_millis(1),
     Duration::from_millis(10),
     Duration::from_millis(100),
+    Duration::from_millis(1000),
+    Duration::from_millis(1000),
+    Duration::from_millis(1000),
+    Duration::from_millis(1000),
+    Duration::from_millis(1000),
+    Duration::from_millis(1000),
+    Duration::from_millis(1000),
+    Duration::from_millis(1000),
+    Duration::from_millis(1000),
     Duration::from_millis(1000),
 ];
 
