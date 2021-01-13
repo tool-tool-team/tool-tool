@@ -16,3 +16,4 @@ tools:
       ver: coreutils echo ${version}
       os: coreutils echo ${linux:os}${windows:os}
       environ: coreutils printenv ENVIRONMENT
+      env: coreutils echo ${env:FOO}

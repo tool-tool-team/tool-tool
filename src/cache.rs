@@ -230,6 +230,8 @@ impl Cache {
                         format!("Could not find tool command '{}'", command_name)
                     })?;
                     Ok(command_line.binary)
+                } else if let Some(var) = name.strip_prefix("env:") {
+                    Ok(std::env::var(var).with_context(|| format!("Could not retrieve environment variable '{}'", var))?)
                 } else if let Some(tool_name) = name.strip_prefix("dir:") {
                     let tool = self
                         .configuration

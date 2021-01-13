@@ -1,0 +1,12 @@
+---
+source: integration-tests/src/integration_tests.rs
+expression: result
+---
+Command: env
+Exit status: exit code: 0
+STDOUT:
+BAR
+
+STDERR:
+
+

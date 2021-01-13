@@ -20,6 +20,7 @@ impl Runner {
         let output = Command::new(&self.test_binary)
             .env("PATH", &self.test_directory)
             .env("RUST_BACKTRACE", &"1")
+            .env("FOO", &"BAR")
             .stdin(Stdio::null())
             .current_dir(&self.test_directory)
             .args(command.split_ascii_whitespace())
@@ -57,7 +58,7 @@ fn prepare_test(config_name: &str) -> Runner {
     }
     // Prepare test directory
     std::fs::create_dir_all(&test_directory).unwrap();
-    let tt_binary = PathBuf::from(format!("../target/release/{}", TT_FILENAME));
+    let tt_binary = PathBuf::from(format!("../target/x86_64-unknown-linux-musl/release/{}", TT_FILENAME));
     std::fs::copy(
         Path::new(&format!("test-configurations/{}.yaml", config_name)),
         &test_directory.join(".tool-tool.v1.yaml"),
@@ -106,7 +107,7 @@ fn coreutils() {
     runner.verify_execution("coreutils no_such_command");
     runner.verify_execution("unconfigured_tool");
     runner.verify_execution("--invalid-config");
-    //        runner.verify_execution("--getToolVersion coreutils");
+    runner.verify_execution("env");
 }
 
 #[test]

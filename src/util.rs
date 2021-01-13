@@ -62,7 +62,7 @@ mod tests {
         let res = retry::<u32, _, _>(|| Err(std::env::VarError::NotPresent));
         assert!(res.is_err());
         assert_eq!(
-            "failed after 5 tries: environment variable not found".to_string(),
+            "failed after 14 tries: environment variable not found".to_string(),
             res.unwrap_err().to_string()
         );
         Ok(())
