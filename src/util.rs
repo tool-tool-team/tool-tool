@@ -2,7 +2,6 @@ use crate::Result;
 use anyhow::Context;
 use std::time::Duration;
 
-
 // NOTE: under windows, file operations often fail spuriously, most likely due to virus scanners
 // keeping files open
 // This retry schedule should hopefully handle most situations

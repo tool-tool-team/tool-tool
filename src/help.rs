@@ -89,7 +89,10 @@ mod tests {
         let mut buffer = Cursor::new(vec![]);
         print_help(configuration, &mut buffer).unwrap();
         let help_text = String::from_utf8(buffer.into_inner()).unwrap();
-        let help_text = help_text.replace(&format!("🔧 {} {} 🔧", NAME, VERSION), "🔧 tool-tool $VER$ 🔧");
+        let help_text = help_text.replace(
+            &format!("🔧 {} {} 🔧", NAME, VERSION),
+            "🔧 tool-tool $VER$ 🔧",
+        );
         insta::assert_yaml_snapshot!(help_text);
     }
 

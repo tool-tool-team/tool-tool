@@ -46,7 +46,10 @@ impl Runner {
         let result = result.replace(&dir, "<DIRECTORY>");
         let tmp_regex = Regex::new("/\\.tmp/[0-9-]+/").unwrap();
         let result = tmp_regex.replace(&result, "/<TMP>/");
-        let result = result.replace(&format!("🔧 tool-tool {} 🔧", VERSION), "🔧 tool-tool $VER$ 🔧");
+        let result = result.replace(
+            &format!("🔧 tool-tool {} 🔧", VERSION),
+            "🔧 tool-tool $VER$ 🔧",
+        );
         settings.bind(|| {
             insta::assert_snapshot!(result);
         });
@@ -61,7 +64,10 @@ fn prepare_test(config_name: &str) -> Runner {
     }
     // Prepare test directory
     std::fs::create_dir_all(&test_directory).unwrap();
-    let tt_binary = PathBuf::from(format!("../target/x86_64-unknown-linux-musl/release/{}", TT_FILENAME));
+    let tt_binary = PathBuf::from(format!(
+        "../target/x86_64-unknown-linux-musl/release/{}",
+        TT_FILENAME
+    ));
     std::fs::copy(
         Path::new(&format!("test-configurations/{}.yaml", config_name)),
         &test_directory.join(".tool-tool.v1.yaml"),
