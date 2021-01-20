@@ -10,6 +10,8 @@ use std::process::{Command, Stdio};
 
 const TMP_DIR: &str = ".test";
 
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 struct Runner {
     test_binary: PathBuf,
     test_directory: PathBuf,
@@ -44,6 +46,7 @@ impl Runner {
         let result = result.replace(&dir, "<DIRECTORY>");
         let tmp_regex = Regex::new("/\\.tmp/[0-9-]+/").unwrap();
         let result = tmp_regex.replace(&result, "/<TMP>/");
+        let result = result.replace(&format!("🔧 tool-tool {} 🔧", VERSION), "🔧 tool-tool $VER$ 🔧");
         settings.bind(|| {
             insta::assert_snapshot!(result);
         });

@@ -1,6 +1,6 @@
 [package]
 name = "integration-tests"
-version = "0.1.0"
+version = "1.0.1-alpha.0"
 authors = ["Manuel Woelker <github@manuel.woelker.org>"]
 edition = "2018"
 

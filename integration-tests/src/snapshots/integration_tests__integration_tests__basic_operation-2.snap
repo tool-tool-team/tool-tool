@@ -5,7 +5,7 @@ expression: result
 Command: --help
 Exit status: exit code: 0
 STDOUT:
-🔧 tool-tool 0.1.0 🔧
+🔧 tool-tool $VER$ 🔧
 
 🔧 A light-weight meta-tool to version and install tool dependencies for your software projects
 

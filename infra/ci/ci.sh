@@ -35,6 +35,7 @@ coverage() {
 build_linux_musl() {
   TARGET=x86_64-unknown-linux-musl
   cargo install cargo-bloat
+  cargo test --target $TARGET
   cargo build --release --target $TARGET
 
   ls -lah target/$TARGET/release/tt
