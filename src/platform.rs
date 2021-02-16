@@ -12,8 +12,8 @@ pub trait Platform {
     fn get_name(&self) -> &'static str;
 }
 
-mod linux;
-mod windows;
+pub mod linux;
+pub mod windows;
 
 pub use linux::Linux;
 pub use windows::Windows;

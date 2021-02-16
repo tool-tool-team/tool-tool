@@ -26,6 +26,8 @@ atomicwrites = "0.2.5"
 flate2 = "1.0.14"
 tar = "0.4.28"
 dunce = "1.0.1"
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["winuser"] }
 
 [profile.release]
 debug = true

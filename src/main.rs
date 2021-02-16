@@ -46,6 +46,7 @@ fn main() -> Result<()> {
     let verbose_env = std::env::var("TOOL_TOOL_VERBOSE").is_ok();
     let args = parse_args(&mut std::env::args().skip(1), verbose_env)?;
     let binary = std::env::args().next().unwrap();
+
     match args {
         Args::Help => {
             let configuration = get_config(&binary).unwrap_or_default();
@@ -102,6 +103,10 @@ fn main() -> Result<()> {
             let mut command_line = command_result
                 .with_context(|| format!("Could not run command '{}'", invocation.command_name))?;
             command_line.arguments.append(&mut invocation.args);
+
+            #[cfg(target_os = "windows")]
+            platform::windows::install_control_handler();
+
             let exitcode = run_invocation(command_line)?;
             if exitcode != 0 {
                 report!(

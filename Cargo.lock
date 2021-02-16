@@ -852,6 +852,7 @@ dependencies = [
  "serde_yaml",
  "tar",
  "tempfile",
+ "winapi",
  "zip",
 ]
 
