@@ -4,11 +4,11 @@ use crate::platform::Platform;
 #[cfg(target_os = "windows")]
 use crate::util::retry;
 #[cfg(target_os = "windows")]
+use winapi::shared::minwindef::{BOOL, DWORD, FALSE, TRUE};
+#[cfg(target_os = "windows")]
 use winapi::um::consoleapi::SetConsoleCtrlHandler;
 #[cfg(target_os = "windows")]
-use winapi::um::wincon::{CTRL_C_EVENT};
-#[cfg(target_os = "windows")]
-use winapi::shared::minwindef::{TRUE, DWORD, BOOL, FALSE};
+use winapi::um::wincon::CTRL_C_EVENT;
 
 pub struct Windows;
 
